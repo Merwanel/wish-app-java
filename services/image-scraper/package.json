@@ -1,0 +1,35 @@
+{
+  "name": "image-scraper",
+  "version": "1.0.0",
+  "description": "Image scraper microservice for wish-app",
+  "main": "build/server.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:dev": "tsc",
+    "start": "node build/server.js",
+    "dev": "npm run build && node build/server.js",
+    "test": "tsc && npx jasmine --config=spec/support/jasmine.mjs",
+    "install:headless-browser": "npx playwright install chromium-headless-shell"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jasmine": "^5.1.8",
+    "@types/node": "^22.15.18",
+    "jasmine": "^5.7.1",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "minimist": "^1.2.8",
+    "playwright": "^1.54.1",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "sharp": "^0.35.5"
+  }
+}
