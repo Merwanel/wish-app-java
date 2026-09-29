@@ -1,0 +1,39 @@
+# Maven
+target/
+pom.xml.versionsBackup
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+mvnvm.log
+
+# Test coverage
+coverage/
+.jacoco/
+
+# Spring Boot
+spring-boosted/
+
+# JRebel
+rebel.xml
+rebel-remote.xml
