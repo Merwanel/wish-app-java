@@ -1,9 +1,9 @@
 services:
-  api-db:
+  api-java:
     build: 
-      context: .
-      dockerfile: api-db/Dockerfile
-    container_name: api-db
+      context: ./api-java
+      dockerfile: Dockerfile
+    container_name: api-java
     ports:
       - "3000:3000"
     networks:
@@ -15,16 +15,37 @@ services:
         condition: service_healthy
       prisma-postgres:
         condition: service_healthy
-    command: >
-      sh -c "
-      npx dotenvx run -f .env.docker -- npx prisma migrate deploy &&
-      exec npx dotenvx run -f .env.docker -- node ./build/server.js # exec to make node the process to receive SIGINT
-      "
+      image-scraper:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://prisma-postgres:5432/mydatabase
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=mypassword
+      - SPRING_REDIS_HOST=redis-cache
+      - SPRING_REDIS_PORT=6379
+      - IMAGE_SCRAPER_URL=http://image-scraper:3001
     healthcheck:
       test: curl --fail --silent http://localhost:3000/status || exit 1
       interval: 5s
       timeout: 3s
       retries: 20
+      start_period: 30s
+  
+  image-scraper:
+    build:
+      context: .
+      dockerfile: services/image-scraper/Dockerfile
+    container_name: image-scraper
+    ports:
+      - "3001:3001"
+    networks:
+      - my-net
+    restart: on-failure
+    healthcheck:
+      test: curl --fail --silent http://localhost:3001/health || exit 1
+      interval: 5s
+      timeout: 3s
+      retries: 5
       start_period: 30s
       
   
@@ -89,7 +110,7 @@ services:
     networks:
       - my-net
     depends_on:
-      api-db :
+      api-java:
         condition: service_healthy
       prisma-postgres:
         condition: service_healthy

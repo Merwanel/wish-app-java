@@ -19,5 +19,5 @@ public class UpdateWishRequest {
     @NotBlank
     private String comment;
 
-    private String pictureBase64;
+    private String picture;
 }

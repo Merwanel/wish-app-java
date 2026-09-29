@@ -9,6 +9,6 @@ public record CreateWishRequest(
     @NotBlank String name,
     String[] tags,
     @NotBlank String comment,
-    @NotBlank String pictureBase64
+    @NotBlank String picture
 ) {
 }

@@ -15,9 +15,9 @@ spring:
       write-dates-as-timestamps: false
     time-zone: UTC
   datasource:
-    url: jdbc:postgresql://localhost:5432/wishapp
-    username: wishapp
-    password: wishapp
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mydatabase}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:mypassword}
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 5
@@ -38,8 +38,8 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
   redis:
-    host: localhost
-    port: 6379
+    host: ${SPRING_REDIS_HOST:localhost}
+    port: ${SPRING_REDIS_PORT:6379}
     timeout: 60000
   elasticsearch:
     uris: http://localhost:9200
@@ -50,6 +50,10 @@ etl:
   sync:
     interval-ms: 5000
     bookmark-key: etl:last_sync
+
+image:
+  scraper:
+    url: ${IMAGE_SCRAPER_URL:http://localhost:3001}
 
 logging:
   level:

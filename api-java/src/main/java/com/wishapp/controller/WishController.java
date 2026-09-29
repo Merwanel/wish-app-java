@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>Provides endpoints matching the legacy Express.js API contract.</p>
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("")
 public class WishController {
 
     private final WishService wishService;
@@ -80,7 +80,13 @@ public class WishController {
         if (request.getId() == null) {
             return ResponseEntity.badRequest().build();
         }
-        WishDTO updated = wishService.update(request.getId(), request);
+        WishDTO updated;
+        try {
+            updated = wishService.update(request.getId(), request);
+        } catch (RuntimeException e) {
+            // Wish not found -> 404 (matches Express behaviour)
+            return ResponseEntity.notFound().build();
+        }
         if (updated == null) {
             return ResponseEntity.notFound().build();
         }
@@ -104,13 +110,16 @@ public class WishController {
     /**
      * POST /convert-image - Convert and resize an image.
      *
+     * <p>Matches the Express endpoint which responds with {@code res.json(base64String)},
+     * i.e. a bare JSON string carrying the base64-encoded WebP image.</p>
+     *
      * @param request the convert request with image_base64
-     * @return converted image as base64 WebP
+     * @return converted image as a base64 WebP JSON string
      */
     @PostMapping("/convert-image")
-    public ResponseEntity<ConvertImageResponse> convertImage(@Valid @RequestBody ConvertImageRequest request) {
+    public ResponseEntity<String> convertImage(@Valid @RequestBody ConvertImageRequest request) {
         String converted = wishService.convertImage(request.image_base64());
-        return ResponseEntity.ok(new ConvertImageResponse(converted));
+        return ResponseEntity.ok(converted);
     }
 
     /**
@@ -123,11 +132,5 @@ public class WishController {
      * Convert image request DTO.
      */
     public record ConvertImageRequest(String image_base64) {
-    }
-
-    /**
-     * Convert image response DTO.
-     */
-    public record ConvertImageResponse(String image_base64) {
     }
 }

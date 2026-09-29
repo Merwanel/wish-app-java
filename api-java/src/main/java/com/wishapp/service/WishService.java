@@ -58,7 +58,7 @@ public class WishService {
      * @return the created wish DTO
      */
     public WishDTO create(CreateWishRequest request) {
-        String processedImage = imageProcessingService.resizeAndConvertToWebP(request.pictureBase64());
+        String processedImage = imageProcessingService.resizeAndConvertToWebP(request.picture());
 
         Wish wish = new Wish();
         wish.setName(request.name());
@@ -82,8 +82,8 @@ public class WishService {
             .orElseThrow(() -> new RuntimeException("Wish not found: " + id));
 
         String processedImage = null;
-        if (request.getPictureBase64() != null && !request.getPictureBase64().isEmpty()) {
-            processedImage = imageProcessingService.resizeAndConvertToWebP(request.getPictureBase64());
+        if (request.getPicture() != null && !request.getPicture().isEmpty()) {
+            processedImage = imageProcessingService.resizeAndConvertToWebP(request.getPicture());
         }
 
         existing.setName(request.getName());

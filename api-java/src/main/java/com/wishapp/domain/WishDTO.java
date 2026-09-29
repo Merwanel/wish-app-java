@@ -6,13 +6,16 @@ import java.util.Arrays;
 
 /**
  * DTO for Wish entity with base64-encoded picture for API responses.
+ *
+ * <p>The {@code picture} field mirrors the base64 {@code picture} field of the
+ * original Express.js {@code WishDTO} schema.</p>
  */
 public record WishDTO(
     Long id,
     String name,
     String[] tags,
     String comment,
-    String pictureBase64,
+    String picture,
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     Instant createdAt
 ) {

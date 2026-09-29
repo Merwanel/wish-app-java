@@ -46,8 +46,7 @@ public class Wish {
     @NotBlank
     private String comment;
 
-    @Lob
-    @Column(name = "picture", nullable = false)
+    @Column(name = "picture", nullable = false, columnDefinition = "BYTEA")
     private byte[] picture;
 
     @PrePersist
