@@ -70,10 +70,12 @@ export function convertPartialToFull(wish: z.input<typeof WishSchemaPartial>) {
 }
 
 export type Wish = ReturnType<typeof convertBase64ToUint8ArrayAndAddUUIDToTagsAndAddLetters>;
-export type WishWRate =  Wish & {
-  matchRate?: number ;
-  track_id?: string ;
-} 
+export type WishWRate = Wish & {
+  matchRate?: number;
+  track_id?: string;
+  highlightedName?: string | null;
+  highlightedComment?: string | null;
+}; 
 export type WishOmitId = z.infer<typeof WishSchemaOmitId> ;
 export type WishPartial = z.infer<typeof WishSchemaPartial> ;
 export type WishToSend = z.infer<typeof WishSchemaToSend> ;

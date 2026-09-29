@@ -17,7 +17,7 @@ describe('WishesComponent', () => {
   let queryParams: BehaviorSubject<any>;
 
   let mutableMockWishes: WishWRate[];
-  
+
   const initialMockWishes: WishWRate[] = [
     {
       id: 1,
@@ -26,7 +26,6 @@ describe('WishesComponent', () => {
       tags: [{ id: '1', val: 'tag1', letters: [] }],
       createdAt: new Date().toISOString(),
       picture: new Uint8Array(),
-      matchRate: .3
     },
     {
       id: 2,
@@ -35,37 +34,38 @@ describe('WishesComponent', () => {
       tags: [{ id: '2', val: 'tag2', letters: [] }],
       createdAt: new Date().toISOString(),
       picture: new Uint8Array(),
-      matchRate: 1
-    }
+    },
   ];
 
   beforeEach(async () => {
     mutableMockWishes = JSON.parse(JSON.stringify(initialMockWishes));
 
-    wishService = jasmine.createSpyObj('WishService',
-      ['fetchWishes', 'forceDetectChange'],
+    wishService = jasmine.createSpyObj(
+      'WishService',
+      ['fetchWishes', 'searchWishes', 'forceDetectChange', 'setWish'],
       {
         getWishes: mutableMockWishes,
         getSearchWords: [],
-      });
+        getTotal: mutableMockWishes.length,
+        getTagFacets: [],
+      }
+    );
     wishService.fetchWishes.and.returnValue(Promise.resolve());
-    
-    wishService.setWish= jasmine.createSpy('setWish').and.callFake((wish:WishWRate, idx:number) => {
-        mutableMockWishes[idx] = wish;
-    }),
-
-    Object.defineProperty(wishService, 'setWishes', {
-      set: jasmine.createSpy('setWishes').and.callFake((wishes: WishWRate[]) => {
-        mutableMockWishes = wishes;
-      }),
+    wishService.searchWishes.and.callFake(async () => {
+      /* state already on spy getters */
     });
-    
+
     Object.defineProperty(wishService, 'getWishes', {
       get: jasmine.createSpy('getWishes').and.callFake(() => mutableMockWishes),
     });
+    Object.defineProperty(wishService, 'getTotal', {
+      get: () => mutableMockWishes.length,
+    });
+    Object.defineProperty(wishService, 'getTagFacets', {
+      get: () => [],
+    });
 
-
-    tagsService = jasmine.createSpyObj('TagsService', ['buildTags']);
+    tagsService = jasmine.createSpyObj('TagsService', ['buildTags', 'setTagsFromFacets']);
     router = jasmine.createSpyObj('Router', ['navigate']);
     queryParams = new BehaviorSubject({});
 
@@ -77,27 +77,27 @@ describe('WishesComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            queryParams: queryParams.asObservable()
-          }
+            queryParams: queryParams.asObservable(),
+          },
         },
         provideHttpClient(),
-        provideHttpClientTesting()
-      ]
+        provideHttpClientTesting(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(WishesComponent);
     component = fixture.componentInstance;
-    component.threshold = 0;
     component.ngOnInit();
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should fetch wishes on init', () => {
-    expect(wishService.fetchWishes).toHaveBeenCalledWith(tagsService);
+  it('should search wishes on init via /wishes/search path', () => {
+    expect(wishService.searchWishes).toHaveBeenCalled();
   });
 
   it('should handle query params changes', fakeAsync(() => {
@@ -109,12 +109,6 @@ describe('WishesComponent', () => {
     expect(component.search_words).toEqual(['test', 'query']);
   }));
 
-  it('should calculate total pages correctly', () => {
-    component.itemsPerPage = 1;
-    component.displayWishesForThatPage();
-    expect(component.totalPages).toBe(mutableMockWishes.length);
-  });
-
   it('should navigate to next page', fakeAsync(async () => {
     component.currentPage = 1;
     component.totalPages = 2;
@@ -125,8 +119,8 @@ describe('WishesComponent', () => {
       [],
       jasmine.objectContaining({
         queryParams: jasmine.objectContaining({
-          page: 2
-        })
+          page: 2,
+        }),
       })
     );
   }));
@@ -141,8 +135,8 @@ describe('WishesComponent', () => {
       [],
       jasmine.objectContaining({
         queryParams: jasmine.objectContaining({
-          page: 1
-        })
+          page: 1,
+        }),
       })
     );
   }));
@@ -157,8 +151,8 @@ describe('WishesComponent', () => {
       [],
       jasmine.objectContaining({
         queryParams: jasmine.objectContaining({
-          page: 3
-        })
+          page: 3,
+        }),
       })
     );
   }));
@@ -173,8 +167,8 @@ describe('WishesComponent', () => {
       [],
       jasmine.objectContaining({
         queryParams: jasmine.objectContaining({
-          page: 1
-        })
+          page: 1,
+        }),
       })
     );
   }));
@@ -195,30 +189,17 @@ describe('WishesComponent', () => {
     expect(component.display_mode).toBe('display-big-images');
   });
 
-  it('should handle wish updates', () => {
+  it('should handle wish updates by reloading from API', async () => {
     const updatedWish = { ...mutableMockWishes[0], name: { val: 'Updated Wish', letters: [] } };
-    component.onWishUpdatedDoUpdateWish({ wish: updatedWish, idx: 0 });
+    await component.onWishUpdatedDoUpdateWish({ wish: updatedWish, idx: 0 });
 
     expect(wishService.setWish).toHaveBeenCalledWith(updatedWish, 0);
     expect(wishService.forceDetectChange).toHaveBeenCalled();
-    expect(component.display_wishes[0].wish).toEqual(updatedWish);
+    expect(wishService.searchWishes).toHaveBeenCalled();
   });
 
-  it('should handle wish deletion', () => {
-    const originalLength = mutableMockWishes.length;
-    component.onWishDeletedDoUpdateDisplay({ idx: 0 });
-    fixture.detectChanges();
-
-    expect(wishService.forceDetectChange).toHaveBeenCalled();
-    expect(mutableMockWishes.length).toBe(originalLength - 1); 
-    expect(component.display_wishes.length).toBe(originalLength - 1); 
-    expect(component.display_wishes[0].wish.id).toBe(2);
-  });
-
-  it('should filter wishes based on match rate threshold', () => {
-    component.threshold = 0.6;
-
-    component.displayWishesForThatPage();
-    expect(component.display_wishes.length).toBe(1);
+  it('should handle wish deletion by reloading from API', async () => {
+    await component.onWishDeletedDoUpdateDisplay({ idx: 0 });
+    expect(wishService.searchWishes).toHaveBeenCalled();
   });
 });

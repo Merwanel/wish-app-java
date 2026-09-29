@@ -2,6 +2,20 @@
   [val]="search_words.join(' ')"
   (searchChange)="onSearchChangeUpdateURL($event)"
 />
+@if (WishService.getTagFacets.length) {
+  <div class="facets" aria-label="Tag facets">
+    @for (facet of WishService.getTagFacets; track facet.key) {
+      <button
+        type="button"
+        class="facet"
+        [class.facet-active]="selectedTag === facet.key"
+        (click)="onFacetClick(facet.key)"
+      >
+        {{ facet.key }} ({{ facet.count }})
+      </button>
+    }
+  </div>
+}
 @if(adding) {
   <div class="app-add-wish" >
     <app-add-wish (close)="onToogleAdd()" (wishAdded)="onWishAddedDoUpdateDisplay()" />
@@ -27,7 +41,7 @@
       }
     </select>
   </div>
-  {{`${wishes_matching.length} items`}}
+  {{`${WishService.getTotal} items`}}
 </div>
 <app-pagination 
   [currentPage]="currentPage" 

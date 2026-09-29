@@ -7,6 +7,10 @@
     "target": "http://localhost:3000",
     "secure": false
   },
+  "/wishes": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
   "/new-wish": {
     "target": "http://localhost:3000",
     "secure": false
@@ -24,6 +28,10 @@
     "secure": false
   },
   "/search": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/internal": {
     "target": "http://localhost:3000",
     "secure": false
   }

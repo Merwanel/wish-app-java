@@ -1,3 +1,7 @@
-@for ( letter of letters; track $index ) {
-  <span [ngClass]="{highlighted:letter.is_a_match}" >{{letter.letter}}</span>
+@if (safeHighlightedHtml) {
+  <span class="es-highlight" [innerHTML]="safeHighlightedHtml"></span>
+} @else {
+  @for (letter of letters; track $index) {
+    <span [ngClass]="{ highlighted: letter.is_a_match }">{{ letter.letter }}</span>
+  }
 }

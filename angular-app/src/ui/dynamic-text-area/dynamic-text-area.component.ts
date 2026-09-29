@@ -38,6 +38,7 @@ export class DynamicTextAreaComponent {
   @Input() is_autofocus = false;
   @Input() is_tag = false;
   @Input() is_comment = false;
+  @Input() highlightedHtml: string | null = null;
 
   @Output() inputModelChange = new EventEmitter<{val:string, letters:Letter[]}>();
   @Output() ref = new EventEmitter<ElementRef>();

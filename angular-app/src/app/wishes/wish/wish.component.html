@@ -27,9 +27,9 @@
       </div>
         <div class="name-comment-tags">
 
-          <app-dynamic-text-area [(inputModel)]="wish.name" (change)="onChangeDoUpdateWish({'name':wish.name.val})" />
+          <app-dynamic-text-area [(inputModel)]="wish.name" [highlightedHtml]="wish.highlightedName ?? null" (change)="onChangeDoUpdateWish({'name':wish.name.val})" />
           
-          <app-dynamic-text-area [(inputModel)]="wish.comment" [is_comment]="true" (change)="onChangeDoUpdateWish({'comment':wish.comment.val})" />
+          <app-dynamic-text-area [(inputModel)]="wish.comment" [is_comment]="true" [highlightedHtml]="wish.highlightedComment ?? null" (change)="onChangeDoUpdateWish({'comment':wish.comment.val})" />
           
           <app-tags [wish]="wish" [doUpdateWish]="true"/>
         </div>
@@ -39,9 +39,9 @@
     </div>
   }
   @if(display_mode==='display-list') {
-    <app-dynamic-text-area [(inputModel)]="wish.name" (change)="onChangeDoUpdateWish({'name':wish.name.val})" />
+    <app-dynamic-text-area [(inputModel)]="wish.name" [highlightedHtml]="wish.highlightedName ?? null" (change)="onChangeDoUpdateWish({'name':wish.name.val})" />
     
-    <app-dynamic-text-area [(inputModel)]="wish.comment" (change)="onChangeDoUpdateWish({'comment':wish.comment.val})" />
+    <app-dynamic-text-area [(inputModel)]="wish.comment" [highlightedHtml]="wish.highlightedComment ?? null" (change)="onChangeDoUpdateWish({'comment':wish.comment.val})" />
     
     <app-tags [wish]="wish" [doUpdateWish]="true"/>
     

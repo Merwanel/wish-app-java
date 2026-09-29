@@ -1,7 +1,7 @@
   <div 
       class="outer-div-for-a-dynamic-input" contenteditable="true">
     <div #InputRef [ngClass]="{tag:is_tag, comment:is_comment}"  class="inner-div-for-a-dynamic-input" contenteditable="true">
-       <app-display-letters [letters]="inputModel.letters"/>
+       <app-display-letters [letters]="inputModel.letters" [highlightedHtml]="highlightedHtml"/>
     </div>
     <textarea 
       #textAreatRef

@@ -1,3 +1,9 @@
 .highlighted {
   font-weight: bold;
 }
+
+.es-highlight mark {
+  font-weight: bold;
+  background: transparent;
+  color: inherit;
+}

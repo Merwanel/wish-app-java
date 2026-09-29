@@ -75,8 +75,8 @@ export class AddWishComponent {
         const res = this.WishService.convertImage(new Uint8Array(reader.result as ArrayBuffer))
         res.subscribe({
           next: (image) => {
-            this.imageBuffer = image;
-            this.imageUrlDisplayed = URL.createObjectURL(new Blob([image], { type: 'image/*' }))
+            this.imageBuffer = new Uint8Array(image);
+            this.imageUrlDisplayed = URL.createObjectURL(new Blob([this.imageBuffer], { type: 'image/*' }))
           },
           error: (err) => {
             console.error('Error converting image', err);
@@ -108,7 +108,7 @@ export class AddWishComponent {
             this.isSearchingImages = false;
             eventSource.close();
           } else if ('image' in data) {
-            const image = base64ToUint8Array(data.image)
+            const image = new Uint8Array(base64ToUint8Array(data.image));
             this.imagesSuggestions.push({ "buffer": image, "display": URL.createObjectURL(new Blob([image], { type: 'image/*' })) });
           }
         } catch (error) {

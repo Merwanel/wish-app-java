@@ -1,151 +1,186 @@
 import { Component } from '@angular/core';
 import { WishService } from '../wish.service';
-import { WishComponent } from "./wish/wish.component";
+import { WishComponent } from './wish/wish.component';
 import { TagsService } from '../tags.service';
 import { AddWishComponent } from './add-wish/add-wish.component';
-import { SearchComponent } from "./search/search.component";
-import { FUZZY_SEARCH_LAXISM_THRESHOLD } from '../utils/getSuggestions';
+import { SearchComponent } from './search/search.component';
 import { BetterSelectComponent, option } from '../../ui/better-select/better-select.component';
 import { PaginationComponent } from '../../ui/pagination/pagination.component';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { WishWRate } from '../../schemas/wish.schema';
 
-export type DisplayMode = 'display-big-images'|'display-list' ;
+export type DisplayMode = 'display-big-images' | 'display-list';
 
 @Component({
   selector: 'app-wishes',
   imports: [WishComponent, AddWishComponent, SearchComponent, BetterSelectComponent, PaginationComponent],
   templateUrl: './wishes.component.html',
-  styleUrl: './wishes.component.css'
+  styleUrl: './wishes.component.css',
 })
 export class WishesComponent {
-  display_wishes : {ori_idx:number,wish:WishWRate}[] = [] ;
-  wishes_matching : WishWRate[] = [] ;
+  display_wishes: { ori_idx: number; wish: WishWRate }[] = [];
+  wishes_matching: WishWRate[] = [];
 
-  threshold = FUZZY_SEARCH_LAXISM_THRESHOLD;
-  adding = false ;
-  options : option[] = [
-    {val:'☐ big images', selected_val:'☐', val_to_emit:'display-big-images'}, 
-    {val:'☰ list', selected_val:'☰', val_to_emit:'display-list'},
-  ]
-  display_mode : DisplayMode = this.options[0].val_to_emit ;
+  adding = false;
+  options: option[] = [
+    { val: '☐ big images', selected_val: '☐', val_to_emit: 'display-big-images' },
+    { val: '☰ list', selected_val: '☰', val_to_emit: 'display-list' },
+  ];
+  display_mode: DisplayMode = this.options[0].val_to_emit;
 
   currentPage = 1;
   itemsPerPage = 10;
   totalPages = 0;
-  search_words : string[] = [];
-
+  search_words: string[] = [];
+  selectedTag: string | null = null;
 
   private routeSubscription!: Subscription;
+  private searchInput$ = new Subject<string>();
+  private searchSubscription!: Subscription;
+  private reloadGeneration = 0;
 
   constructor(
-    public WishService: WishService, public TagsService: TagsService,
-    private activatedRoute: ActivatedRoute, private router: Router
+    public WishService: WishService,
+    public TagsService: TagsService,
+    private activatedRoute: ActivatedRoute,
+    private router: Router
   ) {}
-  
+
   ngOnInit() {
-    this.WishService.fetchWishes(this.TagsService) ;
+    this.searchSubscription = this.searchInput$
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((searchValue) => {
+        void this.navigateSearch(searchValue);
+      });
 
     this.routeSubscription = this.activatedRoute.queryParams.subscribe((params: Params) => {
       this.currentPage = Number(params['page']) || 1;
-      if( Number(params['size']) > 0 ) this.itemsPerPage = Number(params['size']);
-      this.search_words = params['search'] ? params['search'].split('+') : [];
-      this.WishService.setSearch_words = this.search_words;
-      this.totalPages = Math.ceil(this.WishService.getWishes.length / this.itemsPerPage);
-      this.displayWishesForThatPage() ;
+      if (Number(params['size']) > 0) this.itemsPerPage = Number(params['size']);
+      this.search_words = params['search'] ? String(params['search']).split('+').filter(Boolean) : [];
+      this.selectedTag = params['tag'] ? String(params['tag']) : null;
+      void this.reloadFromApi();
     });
-    
   }
+
   ngOnDestroy() {
     this.routeSubscription.unsubscribe();
+    this.searchSubscription.unsubscribe();
   }
-  
+
+  private async reloadFromApi() {
+    const generation = ++this.reloadGeneration;
+    const q = this.search_words.join(' ');
+    const offset = (this.currentPage - 1) * this.itemsPerPage;
+    await this.WishService.searchWishes({
+      q,
+      tag: this.selectedTag,
+      limit: this.itemsPerPage,
+      offset,
+      tagsService: this.TagsService,
+    });
+    if (generation !== this.reloadGeneration) {
+      return;
+    }
+    this.wishes_matching = this.WishService.getWishes;
+    this.totalPages = Math.max(1, Math.ceil(this.WishService.getTotal / this.itemsPerPage));
+    this.display_wishes = this.wishes_matching.map((wish, idx) => ({
+      ori_idx: idx,
+      wish,
+    }));
+  }
+
   async nextPage() {
-    await this.goToPage(this.currentPage+1) ;
-    this.displayWishesForThatPage() ;
+    await this.goToPage(this.currentPage + 1);
   }
   async prevPage() {
-    await this.goToPage(this.currentPage-1) ;
-    this.displayWishesForThatPage() ;
+    await this.goToPage(this.currentPage - 1);
   }
 
   async goToPage(page: number) {
-    if (page < 1 ) {
-      page = this.totalPages ;
+    if (page < 1) {
+      page = this.totalPages;
     }
     if (page > this.totalPages) {
-      page = 1 ;
+      page = 1;
     }
     await this.router.navigate([], {
       relativeTo: this.activatedRoute,
-      queryParams: { page: page, size: this.itemsPerPage, search: this.WishService.getSearchWords.join('+') },
-      queryParamsHandling: 'merge'
-    })
-  }
-  
-  displayWishesForThatPage() {
-    const startIndex = (this.currentPage-1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    this.wishes_matching = this.WishService.getWishes.filter(
-      (wish) => wish.matchRate === undefined || wish.matchRate >= this.threshold
-    )
-    this.totalPages = Math.ceil(this.wishes_matching.length / this.itemsPerPage);
-    this.display_wishes = this.wishes_matching.slice(startIndex, endIndex).map((wish, idx) => {
-      return {ori_idx: startIndex + idx, wish} ;
-    });    
-  }
-  
-  onToogleAdd() {
-    this.adding = !this.adding ;
-  }
-  onClickDoChangeDisplayMode(new_display_mode: DisplayMode) {
-    this.display_mode = new_display_mode ;
-  }
-  onWishUpdatedDoUpdateWish(event: {wish:WishWRate, idx:number}) {
-    this.WishService.setWish(event.wish, event.idx) ;
-    this.WishService.forceDetectChange() ;
-    this.displayWishesForThatPage() ;
-  }
-  onWishDeletedDoUpdateDisplay(event: {idx:number}) {
-    this.WishService.setWishes = this.WishService.getWishes.filter((_, idx) => idx !== event.idx);
-    this.WishService.forceDetectChange() ;
-    this.totalPages = Math.ceil(this.WishService.getWishes.length / this.itemsPerPage);
-    this.displayWishesForThatPage() ;
-  }
-  onWishAddedDoUpdateDisplay() {
-    this.WishService.forceDetectChange() ;
-    this.displayWishesForThatPage() ;
-  }
-  
-  async onSearchChangeUpdateURL(searchValue: string) {
-    searchValue = searchValue || '' ;
-    const searchWords = searchValue.trim() ? searchValue.split(' ').filter(word => word.length > 0) : [];
-    this.search_words = searchWords;
-    this.WishService.setSearch_words = searchWords;
-    
-    await this.router.navigate([], {
-      relativeTo: this.activatedRoute,
-      queryParams: { 
-        page: 1,
-        size: this.itemsPerPage, 
-        search: searchWords.length > 0 ? searchWords.join('+') : null 
+      queryParams: {
+        page,
+        size: this.itemsPerPage,
+        search: this.search_words.length > 0 ? this.search_words.join('+') : null,
+        tag: this.selectedTag,
       },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
   }
-  
-  async onChangeDoUpdatePerPage(event: Event) {
-    this.itemsPerPage = Number((event.target as HTMLSelectElement).value);
-    
+
+  onToogleAdd() {
+    this.adding = !this.adding;
+  }
+  onClickDoChangeDisplayMode(new_display_mode: DisplayMode) {
+    this.display_mode = new_display_mode;
+  }
+  onWishUpdatedDoUpdateWish(event: { wish: WishWRate; idx: number }) {
+    this.WishService.setWish(event.wish, event.idx);
+    this.WishService.forceDetectChange();
+    void this.reloadFromApi();
+  }
+  onWishDeletedDoUpdateDisplay(_event: { idx: number }) {
+    void this.reloadFromApi();
+  }
+  onWishAddedDoUpdateDisplay() {
+    void this.reloadFromApi();
+  }
+
+  onSearchChangeUpdateURL(searchValue: string) {
+    this.searchInput$.next(searchValue || '');
+  }
+
+  private async navigateSearch(searchValue: string) {
+    const searchWords = searchValue.trim()
+      ? searchValue.split(' ').filter((word) => word.length > 0)
+      : [];
+    this.search_words = searchWords;
     await this.router.navigate([], {
       relativeTo: this.activatedRoute,
-      queryParams: { 
+      queryParams: {
         page: 1,
-        size: this.itemsPerPage, 
-        search: this.search_words.length > 0 ? this.search_words.join('+') : null 
+        size: this.itemsPerPage,
+        search: searchWords.length > 0 ? searchWords.join('+') : null,
+        tag: this.selectedTag,
       },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  async onFacetClick(tagKey: string) {
+    const next = this.selectedTag === tagKey ? null : tagKey;
+    this.selectedTag = next;
+    await this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        page: 1,
+        size: this.itemsPerPage,
+        search: this.search_words.length > 0 ? this.search_words.join('+') : null,
+        tag: next,
+      },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  async onChangeDoUpdatePerPage(event: Event) {
+    this.itemsPerPage = Number((event.target as HTMLSelectElement).value);
+    await this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        page: 1,
+        size: this.itemsPerPage,
+        search: this.search_words.length > 0 ? this.search_words.join('+') : null,
+        tag: this.selectedTag,
+      },
+      queryParamsHandling: 'merge',
     });
   }
 }

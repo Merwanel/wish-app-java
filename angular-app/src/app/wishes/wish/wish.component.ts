@@ -1,7 +1,7 @@
 import { Component, ElementRef, Input, ViewChild, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { WishService } from '../../wish.service';
-import { Wish, WishPartial, WishWRate } from '../../../schemas/wish.schema';
+import { WishPartial, WishWRate } from '../../../schemas/wish.schema';
 import { TagsComponent } from '../../shared/tags/tags.component';
 import { DatePipe } from '@angular/common';
 import { DisplayMode } from '../wishes.component';
@@ -17,7 +17,7 @@ import { DynamicTextAreaComponent } from '../../../ui/dynamic-text-area/dynamic-
 })
 export class WishComponent {
   @Input({required: true}) display_mode! : DisplayMode ;
-  @Input({required : true})  wish!: Wish;
+  @Input({required : true})  wish!: WishWRate;
   @Input({required : true})  idx!: number;
   imagesrc : string | null = null ;
   is_it_bigger_image_time = false ;
@@ -35,7 +35,7 @@ export class WishComponent {
       URL.revokeObjectURL(this.oldImageSrc);
     }
     this.imagesrc = this.wish.picture.length
-      ? URL.createObjectURL(new Blob([this.wish.picture], { type: 'image/*' }))
+      ? URL.createObjectURL(new Blob([new Uint8Array(this.wish.picture)], { type: 'image/*' }))
       : null;
     this.oldImageSrc = this.imagesrc;
   }
