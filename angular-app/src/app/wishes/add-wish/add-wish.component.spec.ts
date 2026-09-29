@@ -4,6 +4,7 @@ import { WishService } from '../../wish.service';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { uint8ArrayToBase64 } from 'uint8array-extras';
+import { API_DB_URL } from '../../../const';
 
 describe('AddWishComponent', () => {
   let component: AddWishComponent;
@@ -62,7 +63,7 @@ describe('AddWishComponent', () => {
       component.onClickDoGetImages();
 
       expect(window.EventSource).toHaveBeenCalledWith(
-        'http://localhost:3000/search/test%20search'
+        `${API_DB_URL}search/test%20search`
       );
     });
 
@@ -119,7 +120,7 @@ describe('AddWishComponent', () => {
       component.onClickDoGetImages();
 
       expect(window.EventSource).toHaveBeenCalledWith(
-        'http://localhost:3000/search/test%20with%20spaces%20%26%20symbols!'
+        `${API_DB_URL}search/test%20with%20spaces%20%26%20symbols!`
       );
     });
   });

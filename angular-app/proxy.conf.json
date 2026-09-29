@@ -1,0 +1,30 @@
+{
+  "/status": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/all-wishes": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/new-wish": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/update-wish": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/convert-image": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/delete-wish": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/search": {
+    "target": "http://localhost:3000",
+    "secure": false
+  }
+}
