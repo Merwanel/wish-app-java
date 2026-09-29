@@ -1,93 +1,59 @@
 # Wish List Application
 
-
-A CRUD app for wishes
+A CRUD app for wishes with a **Java 21 / Spring Boot 3** API, Angular frontend, and a Node image-scraper sidecar.
 
 ![App diagram](diagram.png)
-
 
 ## Features
 
 - **Wish Management**: Create, update, and delete wishes with names, comments, tags, and images
-- **Real-time Search**: Fuzzy search across wish names, comments, and tags with instant filtering
-- **Image Processing**: Upload images with automatic resizing using Sharp
-- **Online Image Search**: web scraping images to associate with a wish (Playwright)
-- **Tag System**: Organize wishes with multiple tags and visual tag management
-- **Database Persistence**: the data is persisted with PostgreSQL via PrismaORM
-- **Type-Safety**: Zod schemas shared between frontend and backend
+- **Elasticsearch Search**: Fuzzy search, tag facets, and `<mark>` highlights via `GET /wishes/search`
+- **Image Processing**: Upload images with automatic WebP resizing
+- **Online Image Search**: SSE-proxied Playwright scraping for wish images
+- **Delta ETL**: Postgres → Elasticsearch synced on a schedule and after writes (Redis bookmark `etl:last_sync`)
+- **Type-Safety**: Zod schemas shared with the Angular frontend
 
-## 🛠 Tech Stack
+## Tech Stack
 
-* **Frontend** : Angular 19,  TypeScript , Zod
-
-* **Backend** : Node.js, Express, TypeScript, Prisma ORM, Sharp , Playwright (for web scraping)
-
-* **Infrastructure** : nginx, redis, PostgreSQL 17, Docker, dotenvx
+* **Frontend**: Angular 19, TypeScript, Zod
+* **API**: Java 21, Spring Boot 3, Spring Data JPA, Flyway, elasticsearch-java, Redis
+* **Sidecar**: Node.js image-scraper (Playwright)
+* **Infrastructure**: nginx, Redis 8, PostgreSQL 17, Elasticsearch 8.17, Docker
 
 ## Production
+
 ```bash
-docker compose up
+docker compose up --build
 ```
 
-The application will be available at:
 - Frontend: http://localhost:8080
 - Backend API: http://localhost:3000
+- Elasticsearch: http://localhost:9200
 
+## API notes
 
-## 💻 Development
+| Endpoint | Status |
+|---|---|
+| `GET /wishes/search` | **Primary list/search** used by the Angular UI (empty `q` = browse) |
+| `GET /all-wishes` | **Legacy / debug** — kept for curl and older tests; UI must not use it for the main list |
+| `POST /internal/etl/sync` | Manual delta ETL trigger (refresh=true) |
 
-```bash
-npm run dev                     # Runs both backend and frontend concurrently
-
-# or
-npm -w api-db run dev  # Runs only backend
-npm -w angular-app run start  # Runs only frontend
-```
-
-The application will be available at:
-- Frontend: http://localhost:4200
-- Backend API: http://localhost:3000
-
-
-## 🧪 Testing
+## Testing
 
 ```bash
-npm test  # Run all tests         
+# Java API (Testcontainers for ES / Redis / Postgres on ETL & search suites)
+cd api-java && mvn test
 
-# or
-npm -w api-db test  # Backend tests
-npm -w angular-app test  # Frontend tests
+# Angular
+npm -w angular-app test
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-
-├── angular-app/           # Angular frontend application
-│   ├── src/app/            # Components
-│   ├── src/schemas/        # Zod schemas specific to frontend
-│   └── src/ui/             # Reusable UI components
-├── api-db/                # Backend
-│   ├── src/server.ts       # Express backend 
-│   ├── src/api-get-image   # Scrapper 
-│   ├── src/redis           # Redis class
-│   ├── src/spec            # Tests
-│   ├── src/init            # Data to initialise the database 
-│   └── prisma/             # Database schema              
-├── packages/ 
-│    └── shared-schemas/   # Shared Zod validation schemas
-└── docker-compose.yaml    # Docker deployment
-
+├── angular-app/              # Angular frontend
+├── api-java/                 # Spring Boot API
+├── services/image-scraper/   # Playwright SSE scraper
+├── packages/shared-schemas/  # Shared Zod schemas
+└── docker-compose.yaml
 ```
-
-## 🎯 Future improvements
-
-- Export/import functionality
-- History
-
-
-
-![App screenshot](app-screenshot.png)
-*screenshot of the app*
-
----
