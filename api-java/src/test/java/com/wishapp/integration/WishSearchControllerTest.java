@@ -24,7 +24,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 /**
- * {@code GET /wishes/search} against Compose infra (Postgres, Redis, Elasticsearch).
+ * {@code GET /wishes/search} against Testcontainers (Postgres, Redis, Elasticsearch).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = ApiJavaApplication.class)
@@ -32,15 +32,7 @@ class WishSearchControllerTest {
 
     @DynamicPropertySource
     static void registerProps(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url",
-            () -> "jdbc:postgresql://localhost:5432/testdatabase");
-        registry.add("spring.datasource.username", () -> "postgres");
-        registry.add("spring.datasource.password", () -> "mypassword");
-        registry.add("spring.redis.host", () -> "localhost");
-        registry.add("spring.redis.port", () -> "6379");
-        registry.add("spring.elasticsearch.uris", () -> "http://localhost:9200");
-        registry.add("etl.sync.interval-ms", () -> "3600000");
-        registry.add("image.scraper.url", () -> "http://127.0.0.1:9");
+        WishAppTestcontainers.registerProperties(registry);
     }
 
     @LocalServerPort

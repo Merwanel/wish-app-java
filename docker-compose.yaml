@@ -1,7 +1,8 @@
 services:
   api-java:
-    build: 
+    build:
       context: ./api-java
+      # Multi-stage Maven build (default). For jar-only rebuilds see api-java/Dockerfile.local.
       dockerfile: Dockerfile
     container_name: api-java
     ports:

@@ -17,7 +17,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 /**
- * ETL pipeline against Compose infra (Postgres, Redis, Elasticsearch on localhost).
+ * ETL pipeline against Testcontainers (Postgres, Redis, Elasticsearch).
  * Asserts bookmark = max(updatedAt), soft-delete removal, and refresh semantics.
  */
 @SpringBootTest(classes = ApiJavaApplication.class)
@@ -25,15 +25,7 @@ class WishEtlServiceTest {
 
     @DynamicPropertySource
     static void registerProps(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url",
-            () -> "jdbc:postgresql://localhost:5432/testdatabase");
-        registry.add("spring.datasource.username", () -> "postgres");
-        registry.add("spring.datasource.password", () -> "mypassword");
-        registry.add("spring.redis.host", () -> "localhost");
-        registry.add("spring.redis.port", () -> "6379");
-        registry.add("spring.elasticsearch.uris", () -> "http://localhost:9200");
-        registry.add("etl.sync.interval-ms", () -> "3600000");
-        registry.add("image.scraper.url", () -> "http://127.0.0.1:9");
+        WishAppTestcontainers.registerProperties(registry);
     }
 
     @Autowired

@@ -65,8 +65,8 @@ class WishApiIntegrationTest {
             () -> "jdbc:postgresql://localhost:5432/testdatabase");
         registry.add("spring.datasource.username", () -> "postgres");
         registry.add("spring.datasource.password", () -> "mypassword");
-        registry.add("spring.redis.host", () -> "localhost");
-        registry.add("spring.redis.port", () -> 6379);
+        registry.add("spring.data.redis.host", () -> "localhost");
+        registry.add("spring.data.redis.port", () -> 6379);
         registry.add("spring.elasticsearch.uris", () -> "http://localhost:9200");
         registry.add("etl.sync.interval-ms", () -> "3600000");
         registry.add("image.scraper.url",

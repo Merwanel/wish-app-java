@@ -1,5 +1,14 @@
-# Runtime-only image using a locally built jar (faster iteration).
-# Build jar first: cd api-java && mvn -DskipTests package
+# Optional fast-iteration image (NOT used by docker-compose.yaml).
+# Prefer Dockerfile for portfolio / clean CI builds.
+#
+# When to use:
+#   1) cd api-java && mvn -DskipTests package
+#   2) docker build -f Dockerfile.local -t wish-api-java:local .
+#   3) Point compose at it only if you need a quicker rebuild loop, e.g.:
+#        docker compose build --build-arg ...  OR temporarily set
+#        dockerfile: Dockerfile.local under api-java.build
+#
+# Compose default remains Dockerfile (Maven multi-stage).
 FROM eclipse-temurin:21-jre-alpine
 RUN apk add --no-cache curl
 WORKDIR /app

@@ -1,3 +1,5 @@
+# Default image for `docker compose up --build` (multi-stage; no local Maven required).
+# For faster iteration with a prebuilt jar, see Dockerfile.local.
 # Build stage
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /build

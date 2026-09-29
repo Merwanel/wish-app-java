@@ -26,9 +26,21 @@ A CRUD app for wishes with a **Java 21 / Spring Boot 3** API, Angular frontend, 
 docker compose up --build
 ```
 
+`api-java` builds via **`api-java/Dockerfile`** (multi-stage Maven → JRE). No local `mvn` required.
+
 - Frontend: http://localhost:8080
 - Backend API: http://localhost:3000
 - Elasticsearch: http://localhost:9200
+
+### Fast local API image (optional)
+
+`api-java/Dockerfile.local` is a **runtime-only** image that `COPY`s a prebuilt jar. Compose does **not** use it by default.
+
+```bash
+cd api-java && mvn -DskipTests package
+docker build -f Dockerfile.local -t wish-api-java:local .
+# Then temporarily set api-java.build.dockerfile to Dockerfile.local if desired
+```
 
 ## API notes
 
@@ -41,7 +53,12 @@ docker compose up --build
 ## Testing
 
 ```bash
-# Java API (Testcontainers for ES / Redis / Postgres on ETL & search suites)
+# Java API — WishEtlServiceTest / WishSearchControllerTest use Testcontainers
+# (Postgres + Redis + Elasticsearch). Docker required; Compose not required for those suites.
+# Docker Engine 29: docker-java API is pinned to 1.44 via surefire + src/test/resources/docker-java.properties
+cd api-java && mvn test -Dtest=WishEtlServiceTest,WishSearchControllerTest
+
+# Full suite (WishApiIntegrationTest still expects Compose Postgres/Redis/ES on localhost)
 cd api-java && mvn test
 
 # Angular
