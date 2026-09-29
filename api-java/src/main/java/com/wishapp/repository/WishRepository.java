@@ -2,6 +2,7 @@ package com.wishapp.repository;
 
 import com.wishapp.domain.Wish;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,11 +34,28 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
     Optional<Wish> findByIdAndDeletedAtIsNull(@Param("id") Long id);
 
     /**
-     * Find wishes updated after a given timestamp (for delta sync).
+     * Find non-deleted wishes by IDs (for search hydration).
      *
-     * @param timestamp the reference timestamp
-     * @return list of wishes updated after the timestamp
+     * @param ids wish IDs from Elasticsearch hits
+     * @return matching non-deleted wishes (order not preserved)
      */
-    @Query("SELECT w FROM Wish w WHERE w.updatedAt > :timestamp AND w.deletedAt IS NULL")
+    @Query("SELECT w FROM Wish w WHERE w.id IN :ids AND w.deletedAt IS NULL")
+    List<Wish> findByIdInAndDeletedAtIsNull(@Param("ids") Collection<Long> ids);
+
+    /**
+     * Delta ETL query: all wishes with {@code updatedAt >= timestamp},
+     * including soft-deleted rows so ES ghosts can be removed.
+     *
+     * @param timestamp Redis bookmark ({@code etl:last_sync})
+     * @return wishes updated at or after the bookmark
+     */
+    @Query("SELECT w FROM Wish w WHERE w.updatedAt >= :timestamp ORDER BY w.updatedAt ASC")
+    List<Wish> findByUpdatedAtGreaterThanEqual(@Param("timestamp") Instant timestamp);
+
+    /**
+     * @deprecated Prefer {@link #findByUpdatedAtGreaterThanEqual(Instant)} which includes soft-deletes.
+     */
+    @Deprecated
+    @Query("SELECT w FROM Wish w WHERE w.updatedAt >= :timestamp ORDER BY w.updatedAt ASC")
     List<Wish> findByUpdatedAtAfter(@Param("timestamp") Instant timestamp);
 }

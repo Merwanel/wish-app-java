@@ -50,6 +50,8 @@ public class WishController {
     /**
      * GET /all-wishes - Returns all non-deleted wishes.
      *
+     * <p>Legacy/debug endpoint. The Angular UI uses {@code GET /wishes/search} instead.</p>
+     *
      * @return list of all wishes as DTOs
      */
     @GetMapping("/all-wishes")

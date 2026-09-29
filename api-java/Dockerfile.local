@@ -1,0 +1,10 @@
+# Runtime-only image using a locally built jar (faster iteration).
+# Build jar first: cd api-java && mvn -DskipTests package
+FROM eclipse-temurin:21-jre-alpine
+RUN apk add --no-cache curl
+WORKDIR /app
+RUN addgroup -S appgroup && adduser -S -G appgroup appuser
+COPY target/api-java-0.0.1-SNAPSHOT.jar app.jar
+USER appuser
+EXPOSE 3000
+ENTRYPOINT ["java", "-jar", "app.jar"]

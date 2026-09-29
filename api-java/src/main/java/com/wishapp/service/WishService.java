@@ -9,11 +9,15 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Service layer for Wish entity operations.
  *
- * <p>Provides CRUD operations with image processing and soft-delete support.</p>
+ * <p>Provides CRUD operations with image processing and soft-delete support.
+ * After successful writes, triggers ETL sync with refresh so Angular A2 list
+ * refetches see the change immediately.</p>
  */
 @Service
 @Transactional
@@ -21,10 +25,15 @@ public class WishService {
 
     private final WishRepository wishRepository;
     private final ImageProcessingService imageProcessingService;
+    private final WishEtlService wishEtlService;
 
-    public WishService(WishRepository wishRepository, ImageProcessingService imageProcessingService) {
+    public WishService(
+            WishRepository wishRepository,
+            ImageProcessingService imageProcessingService,
+            WishEtlService wishEtlService) {
         this.wishRepository = wishRepository;
         this.imageProcessingService = imageProcessingService;
+        this.wishEtlService = wishEtlService;
     }
 
     /**
@@ -67,6 +76,7 @@ public class WishService {
         wish.setPicture(processedImage != null ? java.util.Base64.getDecoder().decode(processedImage) : new byte[0]);
 
         Wish saved = wishRepository.save(wish);
+        syncAfterCommit();
         return WishDTO.fromEntity(saved);
     }
 
@@ -94,6 +104,7 @@ public class WishService {
         }
 
         Wish updated = wishRepository.save(existing);
+        syncAfterCommit();
         return WishDTO.fromEntity(updated);
     }
 
@@ -112,6 +123,7 @@ public class WishService {
 
         existing.setDeletedAt(Instant.now());
         wishRepository.save(existing);
+        syncAfterCommit();
         return true;
     }
 
@@ -122,7 +134,7 @@ public class WishService {
      * @return list of updated wishes as DTOs
      */
     public List<WishDTO> findByUpdatedAtAfter(Instant timestamp) {
-        return wishRepository.findByUpdatedAtAfter(timestamp)
+        return wishRepository.findByUpdatedAtGreaterThanEqual(timestamp)
             .stream()
             .map(WishDTO::fromEntity)
             .toList();
@@ -136,5 +148,22 @@ public class WishService {
      */
     public String convertImage(String base64Image) {
         return imageProcessingService.resizeAndConvertToWebP(base64Image);
+    }
+
+    /**
+     * Run ETL after the DB transaction commits so Postgres is source-of-truth
+     * for the rows Elasticsearch indexes.
+     */
+    private void syncAfterCommit() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    wishEtlService.sync(true);
+                }
+            });
+        } else {
+            wishEtlService.sync(true);
+        }
     }
 }

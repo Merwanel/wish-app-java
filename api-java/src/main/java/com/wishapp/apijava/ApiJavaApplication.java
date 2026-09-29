@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Wish App Java Backend - Spring Boot 3 Main Application
@@ -22,6 +23,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @SpringBootApplication
 @EnableJpaAuditing
+@EnableScheduling
 @ComponentScan(basePackages = "com.wishapp")
 @EntityScan(basePackages = "com.wishapp.domain")
 @EnableJpaRepositories(basePackages = "com.wishapp.repository")

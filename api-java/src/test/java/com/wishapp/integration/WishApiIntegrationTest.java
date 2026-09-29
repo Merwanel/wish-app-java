@@ -30,10 +30,8 @@ import org.springframework.test.context.DynamicPropertySource;
  * End-to-end integration tests exercising the real HTTP API (wish endpoints),
  * mirroring the original Express.js {@code server.spec.ts} test patterns.
  *
- * <p>Like the legacy Express spec, these tests run against a real PostgreSQL test
- * database (postgres:5432/testdatabase) and Redis (localhost:6379) provisioned by
- * the existing Docker Compose setup. WireMock stands in for the Node image-scraper
- * microservice.</p>
+ * <p>PostgreSQL, Redis, and Elasticsearch are expected on localhost (Docker Compose).
+ * WireMock stands in for the Node image-scraper microservice.</p>
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = ApiJavaApplication.class)
@@ -69,6 +67,8 @@ class WishApiIntegrationTest {
         registry.add("spring.datasource.password", () -> "mypassword");
         registry.add("spring.redis.host", () -> "localhost");
         registry.add("spring.redis.port", () -> 6379);
+        registry.add("spring.elasticsearch.uris", () -> "http://localhost:9200");
+        registry.add("etl.sync.interval-ms", () -> "3600000");
         registry.add("image.scraper.url",
             () -> "http://localhost:" + IMAGE_SCRAPER.port());
     }
