@@ -1,14 +1,23 @@
 package com.wishapp.domain;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
 /**
  * Request DTO for updating an existing wish.
+ * Uses Lombok Data instead of record to allow id field.
  */
-public record UpdateWishRequest(
-    @NotBlank String name,
-    String[] tags,
-    @NotBlank String comment,
-    String pictureBase64
-) {
+@Data
+public class UpdateWishRequest {
+    private Long id;
+
+    @NotBlank
+    private String name;
+
+    private String[] tags;
+
+    @NotBlank
+    private String comment;
+
+    private String pictureBase64;
 }

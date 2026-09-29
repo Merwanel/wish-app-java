@@ -19,8 +19,8 @@ import lombok.Setter;
 @Entity
 @Table(name = "wishes")
 @Getter
-@Setter(AccessLevel.PACKAGE)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 public class Wish {
 
     @Id
