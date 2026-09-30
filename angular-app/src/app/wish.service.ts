@@ -177,7 +177,7 @@ export class WishService {
     return req;
   }
 
-  deleteWish(id: Number) {
+  deleteWish(id: number) {
     this.http.delete(`${API_DB_URL}delete-wish/${id}`).subscribe(() => {
       this.fetchWishes();
     });

@@ -9,6 +9,8 @@ out-tsc/
 bazel-out/
 target/
 *.js
+!eslint.config.js
+!**/eslint.config.js
 
 # Node
 node_modules/
@@ -45,3 +47,4 @@ typings
 # System files
 .DS_Store
 Thumbs.db
+.m2/

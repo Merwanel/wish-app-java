@@ -7,8 +7,12 @@
     "start": "node --max-old-space-size=4096 ../node_modules/@angular/cli/bin/ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "CHROME_BIN=/usr/bin/chromium-browser ng test",
-    "test:headless": "CHROME_BIN=/usr/bin/chromium-browser ng test  --watch=false --browsers=ChromeHeadless"
+    "test": "ng test",
+    "test:headless": "ng test --watch=false --browsers=ChromeHeadless",
+    "test:coverage": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
+    "type-check": "ng build --configuration=development --progress=false",
+    "lint": "eslint \"src/**/*.{ts,html}\"",
+    "audit": "npm audit --audit-level=high"
   },
   "private": true,
   "dependencies": {
@@ -32,16 +36,23 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
+    "@angular-eslint/eslint-plugin": "^21.0.0",
+    "@angular-eslint/eslint-plugin-template": "^21.0.0",
+    "@angular-eslint/template-parser": "^21.0.0",
     "@angular/cli": "^21.2.24",
     "@angular/compiler-cli": "^21.2.24",
+    "@eslint/js": "^9.0.0",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^22.15.21",
+    "angular-eslint": "^21.0.0",
+    "eslint": "^9.0.0",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.9.0"
+    "typescript": "~5.9.0",
+    "typescript-eslint": "^8.0.0"
   }
 }

@@ -53,7 +53,7 @@ export class AddWishComponent {
       tags: this.wish.tags.map(({ val }) => val),
       picture: this.imageBuffer
     }).subscribe({
-      next: (res) => {
+      next: (_res) => {
         this.wishAdded.emit();
       },
       error: (err) => {
@@ -119,7 +119,7 @@ export class AddWishComponent {
       });
     };
 
-    eventSource.onerror = (error: Event): void => {
+    eventSource.onerror = (_error: Event): void => {
       this.ngZone.run(() => {
         this.isSearchingImages = false;
       });

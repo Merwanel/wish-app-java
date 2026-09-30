@@ -90,7 +90,12 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "codeCoverage": false,
+            "codeCoverageExclude": [
+              "src/**/*.spec.ts",
+              "src/main.ts"
+            ]
           }
         }
       }

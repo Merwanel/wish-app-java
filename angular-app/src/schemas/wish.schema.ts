@@ -10,7 +10,7 @@ export const WishSchemaToSend = WishSchema.extend({
   picture: z.string()
 });
 
-const WishSchemaToSendPartial = WishSchemaToSend.partial()
+export const WishSchemaToSendPartial = WishSchemaToSend.partial()
 export const WishSchemaToSendArray = WishSchemaToSend.array()
 
 export function convertBase64ToUint8(wish: z.infer<typeof WishSchemaToSend>): z.infer<typeof WishSchema> {

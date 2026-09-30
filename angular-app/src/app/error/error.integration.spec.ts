@@ -65,7 +65,7 @@ describe('ErrorComponent integration with app.config.ts', () => {
     const req = httpMock.expectOne((r) => /all-wishes$/.test(r.url));
     req.flush('fail', { status: 500, statusText: 'Server Error' });
 
-    const fixture = TestBed.createComponent(AppComponent);
+    TestBed.createComponent(AppComponent);
     router.initialNavigation();
     
     tick();

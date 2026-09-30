@@ -9,7 +9,6 @@ import { API_DB_URL } from '../../../const';
 describe('AddWishComponent', () => {
   let component: AddWishComponent;
   let fixture: ComponentFixture<AddWishComponent>;
-  let mockWishService: jasmine.SpyObj<WishService>;
 
   beforeEach(async () => {
     const wishServiceSpy = jasmine.createSpyObj('WishService', ['addWish', 'convertImage']);

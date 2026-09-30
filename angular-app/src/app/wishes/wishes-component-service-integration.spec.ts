@@ -77,13 +77,6 @@ describe('WishesComponent - Service Integration', () => {
     fixture.detectChanges();
   };
 
-  const syncDisplayFromService = (): void => {
-    component.wishes_matching = wishService.getWishes;
-    component.display_wishes = wishService.getWishes.map((wish, idx) => ({ ori_idx: idx, wish }));
-    fixture.detectChanges();
-  };
-
-
   const createMockWishOmitId = (overrides: Partial<WishOmitId> = {}): WishOmitId => ({
     name: 'New Test Wish',
     comment: 'New Test Comment',

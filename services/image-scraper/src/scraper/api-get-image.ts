@@ -113,7 +113,7 @@ export class ImageFetcher {
 				await this.page.waitForTimeout(this.getNumberAround(500));
 				await firstImageLink.click();
 				let imageUrl: string | null = "";
-				remaining_try = await this.retryBlock(remaining_try, async () => {
+				await this.retryBlock(remaining_try, async () => {
 					await this.page.waitForTimeout(this.getNumberAround(400));
 					const imageLocator = locatorFunctions.locateBigImageLink();
 					await imageLocator.waitFor({ state: 'attached', timeout: 3000 });
