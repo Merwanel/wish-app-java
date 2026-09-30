@@ -2,6 +2,12 @@
 
 A CRUD app for wishes with a **Java 21 / Spring Boot 3** API, Angular frontend, and a Node image-scraper sidecar.
 
+| | Tests | Coverage |
+|---------|-------|----------|
+| **api-java** | [![api-java Tests](https://github.com/Merwanel/wish-app-java/actions/workflows/api-java-test-build-push.yaml/badge.svg)](https://github.com/Merwanel/wish-app-java/actions/workflows/api-java-test-build-push.yaml) | [![codecov](https://codecov.io/gh/Merwanel/wish-app-java/branch/main/graph/badge.svg?flag=api-java)](https://codecov.io/gh/Merwanel/wish-app-java) |
+| **angular-app** | [![angular-app Tests](https://github.com/Merwanel/wish-app-java/actions/workflows/angular-app-test-build-push.yaml/badge.svg)](https://github.com/Merwanel/wish-app-java/actions/workflows/angular-app-test-build-push.yaml) | [![codecov](https://codecov.io/gh/Merwanel/wish-app-java/branch/main/graph/badge.svg?flag=angular-app)](https://codecov.io/gh/Merwanel/wish-app-java) |
+| **image-scraper** | [![image-scraper Tests](https://github.com/Merwanel/wish-app-java/actions/workflows/image-scraper-test-build-push.yaml/badge.svg)](https://github.com/Merwanel/wish-app-java/actions/workflows/image-scraper-test-build-push.yaml) | [![codecov](https://codecov.io/gh/Merwanel/wish-app-java/branch/main/graph/badge.svg?flag=image-scraper)](https://codecov.io/gh/Merwanel/wish-app-java) |
+
 ![App diagram](diagram.png)
 
 ## Features
