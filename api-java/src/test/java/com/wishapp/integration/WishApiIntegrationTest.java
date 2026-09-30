@@ -30,7 +30,7 @@ import org.springframework.test.context.DynamicPropertySource;
  * End-to-end integration tests exercising the real HTTP API (wish endpoints),
  * mirroring the original Express.js {@code server.spec.ts} test patterns.
  *
- * <p>PostgreSQL, Redis, and Elasticsearch are expected on localhost (Docker Compose).
+ * <p>PostgreSQL, Redis, and Elasticsearch come from {@link WishAppTestcontainers}.
  * WireMock stands in for the Node image-scraper microservice.</p>
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -60,15 +60,8 @@ class WishApiIntegrationTest {
 
     @DynamicPropertySource
     static void datasourceProperties(DynamicPropertyRegistry registry) {
-        // Flyway applies V1__init_schema.sql to the isolated test database
-        registry.add("spring.datasource.url",
-            () -> "jdbc:postgresql://localhost:5432/testdatabase");
-        registry.add("spring.datasource.username", () -> "postgres");
-        registry.add("spring.datasource.password", () -> "mypassword");
-        registry.add("spring.data.redis.host", () -> "localhost");
-        registry.add("spring.data.redis.port", () -> 6379);
-        registry.add("spring.elasticsearch.uris", () -> "http://localhost:9200");
-        registry.add("etl.sync.interval-ms", () -> "3600000");
+        WishAppTestcontainers.registerProperties(registry);
+        // Override dummy scraper URL from shared helper with WireMock
         registry.add("image.scraper.url",
             () -> "http://localhost:" + IMAGE_SCRAPER.port());
     }

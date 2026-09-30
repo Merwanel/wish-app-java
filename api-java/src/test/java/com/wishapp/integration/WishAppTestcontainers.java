@@ -7,8 +7,9 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- * Shared Testcontainers for ETL/search integration tests (Postgres + Redis + Elasticsearch).
+ * Shared Testcontainers for integration tests (Postgres + Redis + Elasticsearch).
  * Started once per JVM so suites stay self-contained without Compose.
+ * Docker Engine API is pinned to 1.44 via surefire + {@code docker-java.properties}.
  */
 final class WishAppTestcontainers {
 

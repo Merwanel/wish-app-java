@@ -53,16 +53,14 @@ docker build -f Dockerfile.local -t wish-api-java:local .
 ## Testing
 
 ```bash
-# Java API — WishEtlServiceTest / WishSearchControllerTest use Testcontainers
-# (Postgres + Redis + Elasticsearch). Docker required; Compose not required for those suites.
-# Docker Engine 29: docker-java API is pinned to 1.44 via surefire + src/test/resources/docker-java.properties
-cd api-java && mvn test -Dtest=WishEtlServiceTest,WishSearchControllerTest
-
-# Full suite (WishApiIntegrationTest still expects Compose Postgres/Redis/ES on localhost)
+# Java API — full suite uses Testcontainers (Postgres + Redis + Elasticsearch).
+# Docker Engine required; Compose is not. API pin 1.44 via surefire + docker-java.properties.
 cd api-java && mvn test
+# SpotBugs (fails on High+): mvn spotbugs:check
+# Jacoco XML: target/site/jacoco/jacoco.xml
 
 # Angular
-npm -w angular-app test
+npm -w angular-app test:headless
 ```
 
 ## Project Structure
