@@ -1,0 +1,58 @@
+name: api-java Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'api-java/**'
+      - '.github/workflows/api-java-test-build-push.yaml'
+      - '.github/workflows/docker-build-push.yml'
+      - '.github/actions/calver/action.yml'
+
+jobs:
+  api-java-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api-java
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+          cache-dependency-path: api-java/pom.xml
+
+      - name: SpotBugs (High+)
+        run: mvn -B -DskipTests compile spotbugs:check
+
+      - name: Run tests with Jacoco
+        run: mvn -B test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./api-java/target/site/jacoco/jacoco.xml
+          flags: api-java
+          name: api-java-coverage
+
+  api-java-build-and-push:
+    needs: api-java-test
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker-build-push.yml
+    with:
+      service: api-java
+      context: ./api-java
+      dockerfile: ./api-java/Dockerfile

@@ -1,0 +1,35 @@
+coverage:
+  status:
+    project:
+      default:
+        # TODO: uncomment when ready
+        # target: 80%
+        informational: true
+    patch:
+      api-java:
+        flags:
+          - api-java
+      angular-app:
+        threshold: 0.01%
+        flags:
+          - angular-app
+      image-scraper:
+        flags:
+          - image-scraper
+
+github_checks:
+  annotations: true
+
+flags:
+  api-java:
+    carryforward: true
+    paths:
+      - api-java/
+  angular-app:
+    carryforward: true
+    paths:
+      - angular-app/
+  image-scraper:
+    carryforward: true
+    paths:
+      - services/image-scraper/

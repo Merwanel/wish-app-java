@@ -1,0 +1,69 @@
+name: image-scraper Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/image-scraper/**'
+      - '.github/workflows/image-scraper-test-build-push.yaml'
+      - '.github/workflows/docker-build-push.yml'
+      - '.github/actions/calver/action.yml'
+
+jobs:
+  image-scraper-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/image-scraper
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        working-directory: .
+        run: npm ci
+
+      - name: npm audit
+        run: npm run audit
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests with coverage
+        run: npm run test:coverage
+        env:
+          MOCK_SCRAPER: 'true'
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./services/image-scraper/coverage/lcov.info
+          flags: image-scraper
+          name: image-scraper-coverage
+
+  image-scraper-build-and-push:
+    needs: image-scraper-test
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker-build-push.yml
+    with:
+      service: image-scraper
+      context: .
+      dockerfile: ./services/image-scraper/Dockerfile

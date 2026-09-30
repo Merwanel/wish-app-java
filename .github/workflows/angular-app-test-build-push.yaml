@@ -1,0 +1,79 @@
+name: angular-app Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'angular-app/**'
+      - 'packages/shared-schemas/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/angular-app-test-build-push.yaml'
+      - '.github/workflows/docker-build-push.yml'
+      - '.github/actions/calver/action.yml'
+
+jobs:
+  angular-app-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install Chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+          echo "CHROME_BIN=$(command -v chromium-browser || command -v chromium)" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared-schemas
+        run: npm run -w packages/shared-schemas build
+
+      - name: npm audit
+        working-directory: ./angular-app
+        run: npm run audit
+
+      - name: Type check
+        working-directory: ./angular-app
+        run: npm run type-check
+
+      - name: Lint
+        working-directory: ./angular-app
+        run: npm run lint
+
+      - name: Tests with coverage
+        working-directory: ./angular-app
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./angular-app/coverage/angular-app/lcov.info
+          flags: angular-app
+          name: angular-app-coverage
+
+  angular-app-build-and-push:
+    needs: angular-app-test
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker-build-push.yml
+    with:
+      service: angular-app
+      context: .
+      dockerfile: ./angular-app/Dockerfile
