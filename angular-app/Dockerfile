@@ -8,7 +8,9 @@ COPY --chown=node:node packages/shared-schemas/package.json packages/shared-sche
 COPY --chown=node:node angular-app/package.json angular-app/package.json
 COPY --chown=node:node services/image-scraper/package.json services/image-scraper/package.json
 
-RUN npm ci
+# Skip lifecycle scripts: image-scraper's Playwright postinstall is irrelevant here
+# and would pull browser binaries into the Angular build image.
+RUN npm ci --ignore-scripts
 
 # Build the shared-schemas package the Angular app depends on (tsc -> build/)
 COPY --chown=node:node packages/shared-schemas packages/shared-schemas
