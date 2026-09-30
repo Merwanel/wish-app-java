@@ -3,24 +3,18 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "postinstall": "npm run -w api-db install:headless-browser",
-
         "pretest": "npm run build:schemas:dev",
-        "test": "concurrently --kill-others-on-fail  -n api-db,angular-app -c green,blue  'npm run -w api-db test' 'npm run -w angular-app test:headless'",
-        
-        "build:dev": "npm run build:schemas:dev && npm run -w api-db build:dev",
+        "test": "npm run -w angular-app test:headless",
+        "build:dev": "npm run build:schemas:dev",
         "build:schemas:dev": "npm run -w packages/shared-schemas build:dev",
-        "build:api-db:dev": "npm run -w api-db build:dev",
-        "build:angular-app:dev": "npm run -w angular-app build:dev",
+        "build:angular-app:dev": "npm run -w angular-app build",
         "build:scraper": "npm run -w services/image-scraper build",
         "test:scraper": "npm run -w services/image-scraper test",
-
-        "dev": "npm run build:dev && ( concurrently --kill-others -n api-db,angular-app -c green,blue  'npm run -w api-db dev' 'npm run -w angular-app start')"
+        "dev": "npm run build:dev && npm run -w angular-app start"
     },
     "workspaces": [
         "packages/*",
         "services/*",
-        "api-db",
         "angular-app"
     ],
     "dependencies": {

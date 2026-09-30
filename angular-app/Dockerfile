@@ -1,15 +1,14 @@
 FROM node:22.15.0-alpine AS builder
 WORKDIR /app
 
-# Workspace manifests + lockfile only (for layer caching). The lockfile references
-# api-db/services workspaces that are NOT shipped in this image; --ignore-scripts
-# prevents the root postinstall ("npm run -w api-db install:headless-browser") from
-# running, which is what previously broke the build with "No workspaces found".
+# Workspace manifests + lockfile only (for layer caching). Copy every workspace
+# package.json so npm ci can resolve the monorepo lockfile; sources come later.
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node packages/shared-schemas/package.json packages/shared-schemas/package.json
 COPY --chown=node:node angular-app/package.json angular-app/package.json
+COPY --chown=node:node services/image-scraper/package.json services/image-scraper/package.json
 
-RUN npm ci --ignore-scripts
+RUN npm ci
 
 # Build the shared-schemas package the Angular app depends on (tsc -> build/)
 COPY --chown=node:node packages/shared-schemas packages/shared-schemas
