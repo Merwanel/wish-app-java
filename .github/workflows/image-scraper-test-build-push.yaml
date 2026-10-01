@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'services/image-scraper/**'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/image-scraper-test-build-push.yaml'
       - '.github/workflows/docker-build-push.yml'
       - '.github/actions/calver/action.yml'
@@ -25,7 +27,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Node.js 24
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: 'npm'

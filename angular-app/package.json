@@ -8,8 +8,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:headless": "ng test --watch=false --browsers=ChromeHeadless",
-    "test:coverage": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
+    "test:headless": "ng test --watch=false --browsers=ChromeHeadlessCI",
+    "test:coverage": "ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage",
     "type-check": "ng build --configuration=development --progress=false",
     "lint": "eslint \"src/**/*.{ts,html}\"",
     "audit": "npm audit --audit-level=high"
