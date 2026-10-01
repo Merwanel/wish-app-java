@@ -24,7 +24,6 @@ describe('AddWishComponent', () => {
 
     fixture = TestBed.createComponent(AddWishComponent);
     component = fixture.componentInstance;
-    mockWishService = TestBed.inject(WishService) as jasmine.SpyObj<WishService>;
     fixture.detectChanges();
   });
 

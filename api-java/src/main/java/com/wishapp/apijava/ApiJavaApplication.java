@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Wish App Java Backend - Spring Boot 3 Main Application
@@ -19,11 +18,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * entity and repository scans to {@code com.wishapp} so controllers, services, repositories
  * and configuration beans are actually picked up.</p>
  *
+ * <p>Scheduling is enabled via {@link com.wishapp.config.SchedulingConfig} (conditional).</p>
+ *
  * @author Wish App Team
  */
 @SpringBootApplication
 @EnableJpaAuditing
-@EnableScheduling
 @ComponentScan(basePackages = "com.wishapp")
 @EntityScan(basePackages = "com.wishapp.domain")
 @EnableJpaRepositories(basePackages = "com.wishapp.repository")
