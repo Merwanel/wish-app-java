@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { WishService } from '../wish.service';
 import { WishComponent } from './wish/wish.component';
 import { TagsService } from '../tags.service';
@@ -18,7 +18,7 @@ export type DisplayMode = 'display-big-images' | 'display-list';
   templateUrl: './wishes.component.html',
   styleUrl: './wishes.component.css',
 })
-export class WishesComponent {
+export class WishesComponent implements OnInit, OnDestroy {
   display_wishes: { ori_idx: number; wish: WishWRate }[] = [];
   wishes_matching: WishWRate[] = [];
 

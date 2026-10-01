@@ -1,4 +1,4 @@
-import { Component, Output, Input, EventEmitter, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Output, Input, EventEmitter, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AutofocusDirective } from './autofocus.directive';
 import { NgClass } from '@angular/common';
@@ -31,7 +31,7 @@ import { initLetters } from '../../app/utils/letters';
   templateUrl: './dynamic-input.component.html',
   styleUrl: './dynamic-input.component.css'
 })
-export class DynamicInputComponent {
+export class DynamicInputComponent implements AfterViewInit {
 
   @Input({required:true}) inputModel!: {val:string, letters:Letter[]} ;
   @Input() input_id = "";

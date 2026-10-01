@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewChild, Output, EventEmitter } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild, Output, EventEmitter, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { WishService } from '../../wish.service';
 import { WishPartial, WishWRate } from '../../../schemas/wish.schema';
@@ -15,7 +15,7 @@ import { DynamicTextAreaComponent } from '../../../ui/dynamic-text-area/dynamic-
   templateUrl: './wish.component.html',
   styleUrl: './wish.component.css'
 })
-export class WishComponent {
+export class WishComponent implements OnInit {
   @Input({required: true}) display_mode! : DisplayMode ;
   @Input({required : true})  wish!: WishWRate;
   @Input({required : true})  idx!: number;

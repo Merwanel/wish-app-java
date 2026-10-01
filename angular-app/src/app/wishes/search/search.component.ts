@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, OnInit } from '@angular/core';
 import { DynamicInputComponent } from "../../../ui/dynamic-input/dynamic-input.component";
 import { initLetters } from '../../utils/letters';
 
@@ -8,7 +8,7 @@ import { initLetters } from '../../utils/letters';
   templateUrl: './search.component.html',
   styleUrl: './search.component.css'
 })
-export class SearchComponent {
+export class SearchComponent implements OnInit, OnChanges {
   @Input({required: true}) val! : string ;
   @Output() searchChange = new EventEmitter<string>();
   
