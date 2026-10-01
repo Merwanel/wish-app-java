@@ -65,8 +65,9 @@ cd api-java && mvn test
 # SpotBugs (fails on High+): mvn spotbugs:check
 # Jacoco XML: target/site/jacoco/jacoco.xml
 
-# Angular
-npm -w angular-app test:headless
+# Angular (needs Google Chrome or Chromium on PATH)
+npm test
+# Coverage (same as CI): npm -w angular-app test:coverage
 ```
 
 ## Project Structure
