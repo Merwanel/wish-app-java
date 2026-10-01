@@ -21,6 +21,8 @@ describe('SearchComponent Integration Tests', () => {
   let router: Router;
   let activatedRoute: ActivatedRoute;
 
+  const flushSearchDebounce = () => new Promise((r) => setTimeout(r, 350));
+
   const mockWishes: WishWRate[] = [
     {
       id: 1,
@@ -148,14 +150,16 @@ describe('SearchComponent Integration Tests', () => {
     it('should update router navigation when search changes', async () => {
       const testSearchValue = 'router test';
 
-      await parentComponent.onSearchChangeUpdateURL(testSearchValue);
+      parentComponent.onSearchChangeUpdateURL(testSearchValue);
+      await flushSearchDebounce();
 
       expect(router.navigate).toHaveBeenCalledWith([], {
         relativeTo: activatedRoute,
         queryParams: {
           page: 1,
           size: parentComponent.itemsPerPage,
-          search: 'router+test'
+          search: 'router+test',
+          tag: null,
         },
         queryParamsHandling: 'merge'
       });
@@ -173,7 +177,8 @@ describe('SearchComponent Integration Tests', () => {
 
   describe('Search Workflow Scenarios', () => {
     it('should handle empty search input correctly', async () => {
-      await parentComponent.onSearchChangeUpdateURL('');
+      parentComponent.onSearchChangeUpdateURL('');
+      await flushSearchDebounce();
 
       expect(parentComponent.search_words).toEqual([]);
       expect(router.navigate).toHaveBeenCalledWith([], {
@@ -181,7 +186,8 @@ describe('SearchComponent Integration Tests', () => {
         queryParams: {
           page: 1,
           size: parentComponent.itemsPerPage,
-          search: null
+          search: null,
+          tag: null,
         },
         queryParamsHandling: 'merge'
       });
@@ -190,7 +196,8 @@ describe('SearchComponent Integration Tests', () => {
     it('should handle multiple search words', async () => {
       const multiWordSearch = 'multiple word search test';
 
-      await parentComponent.onSearchChangeUpdateURL(multiWordSearch);
+      parentComponent.onSearchChangeUpdateURL(multiWordSearch);
+      await flushSearchDebounce();
 
       expect(parentComponent.search_words).toEqual(['multiple', 'word', 'search', 'test']);
       expect(router.navigate).toHaveBeenCalledWith([], {
@@ -198,7 +205,8 @@ describe('SearchComponent Integration Tests', () => {
         queryParams: {
           page: 1,
           size: parentComponent.itemsPerPage,
-          search: 'multiple+word+search+test'
+          search: 'multiple+word+search+test',
+          tag: null,
         },
         queryParamsHandling: 'merge'
       });
@@ -207,7 +215,8 @@ describe('SearchComponent Integration Tests', () => {
     it('should filter out empty words from search', async () => {
       const searchWithSpaces = '  word1    word2  ';
 
-      await parentComponent.onSearchChangeUpdateURL(searchWithSpaces);
+      parentComponent.onSearchChangeUpdateURL(searchWithSpaces);
+      await flushSearchDebounce();
 
       expect(parentComponent.search_words).toEqual(['word1', 'word2']);
     });
@@ -215,7 +224,8 @@ describe('SearchComponent Integration Tests', () => {
     it('should reset to page 1 when performing new search', async () => {
       parentComponent.currentPage = 5;
 
-      await parentComponent.onSearchChangeUpdateURL('new search');
+      parentComponent.onSearchChangeUpdateURL('new search');
+      await flushSearchDebounce();
 
       expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({
         queryParams: jasmine.objectContaining({

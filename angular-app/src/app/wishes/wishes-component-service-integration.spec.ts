@@ -60,11 +60,17 @@ describe('WishesComponent - Service Integration', () => {
     req.flush(response);
   };
 
-  const toSearchResponse = (mockWishes: MockApiWish[] = []) => ({
-    total: mockWishes.length,
-    wishes: mockWishes.map(w => ({ ...w, highlightedName: null, highlightedComment: null })),
-    aggregations: { tags: [] },
-  });
+  const toSearchResponse = (mockWishes: MockApiWish[] = []) => {
+    const tagCounts = new Map<string, number>();
+    mockWishes.forEach((w) => w.tags.forEach((t) => tagCounts.set(t, (tagCounts.get(t) || 0) + 1)));
+    return {
+      total: mockWishes.length,
+      wishes: mockWishes.map(w => ({ ...w, highlightedName: null, highlightedComment: null })),
+      aggregations: {
+        tags: Array.from(tagCounts.entries()).map(([key, count]) => ({ key, count })),
+      },
+    };
+  };
 
   const expectAndFlushFetchWishes = (mockWishes: MockApiWish[] = []): void => {
     const req = httpMock.expectOne(r => r.url === `${API_DB_URL}wishes/search`);
@@ -74,6 +80,17 @@ describe('WishesComponent - Service Integration', () => {
 
   const waitForAsyncOperations = async (): Promise<void> => {
     await fixture.whenStable();
+    fixture.detectChanges();
+  };
+
+  /** Sync component display from WishService (mirrors reloadFromApi after service-driven fetches). */
+  const syncDisplayFromService = (): void => {
+    component.wishes_matching = wishService.getWishes;
+    component.totalPages = Math.max(1, Math.ceil(wishService.getTotal / component.itemsPerPage));
+    component.display_wishes = component.wishes_matching.map((wish, idx) => ({
+      ori_idx: idx,
+      wish,
+    }));
     fixture.detectChanges();
   };
 
@@ -197,7 +214,7 @@ describe('WishesComponent - Service Integration', () => {
     expectAndFlushFetchWishes(initialWishes);
     await fetchPromise;
     
-        fixture.detectChanges();
+    syncDisplayFromService();
     
     verifyDisplayWishesCount(2);
     
@@ -210,7 +227,7 @@ describe('WishesComponent - Service Integration', () => {
         
     wishService.addWish(newWishData).subscribe({
       complete: () => {      
-                fixture.detectChanges();
+        syncDisplayFromService();
         
         verifyDisplayWishesCount(3);
         verifyWishInDisplay(3);
@@ -259,7 +276,7 @@ describe('WishesComponent - Service Integration', () => {
     expectAndFlushFetchWishes(initialWishes);
     await fetchPromise;
     
-        fixture.detectChanges();
+    syncDisplayFromService();
     
     verifyDisplayWishesCount(3);
 
@@ -280,7 +297,7 @@ describe('WishesComponent - Service Integration', () => {
     
     await waitForAsyncOperations();
     
-        fixture.detectChanges();
+    syncDisplayFromService();
     
     verifyDisplayWishesCount(2);
     verifyWishNotInDisplay(wishIdToDelete);

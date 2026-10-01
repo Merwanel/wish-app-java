@@ -63,6 +63,24 @@ describe('AddWishComponent Integration Tests', () => {
     ...overrides
   });
 
+  const toSearchResponse = (wishes: ReturnType<typeof createMockApiWish>[] = []) => {
+    const tagCounts = new Map<string, number>();
+    wishes.forEach((w) => w.tags.forEach((t: string) => tagCounts.set(t, (tagCounts.get(t) || 0) + 1)));
+    return {
+      total: wishes.length,
+      wishes: wishes.map((w) => ({ ...w, highlightedName: null, highlightedComment: null })),
+      aggregations: {
+        tags: Array.from(tagCounts.entries()).map(([key, count]) => ({ key, count })),
+      },
+    };
+  };
+
+  const expectSearchRequest = () => {
+    const req = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes/search`);
+    expect(req.request.method).toBe('GET');
+    return req;
+  };
+
   const createMockFile = (name: string = 'test.jpg', type: string = 'image/jpeg'): File => {
     const buffer = new ArrayBuffer(8);
     const view = new Uint8Array(buffer);
@@ -130,8 +148,8 @@ describe('AddWishComponent Integration Tests', () => {
 
       req.flush({ success: true });
 
-      const fetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
-      expect(fetchReq.request.method).toBe('GET');
+      const fetchReq = expectSearchRequest();
+      fetchReq.flush(toSearchResponse([]));
     });
   });
 
@@ -168,7 +186,7 @@ describe('AddWishComponent Integration Tests', () => {
 
       req.flush({ success: true });
 
-      const fetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
+      const fetchReq = expectSearchRequest();
       const updatedWishes = [
         createMockApiWish({ id: 1, tags: ['existing'] }),
         createMockApiWish({
@@ -177,7 +195,7 @@ describe('AddWishComponent Integration Tests', () => {
           tags: ['existing', 'newtag']
         })
       ];
-      fetchReq.flush(updatedWishes);
+      fetchReq.flush(toSearchResponse(updatedWishes));
     });
 
     it('should handle tag association with TagsComponent integration', () => {
@@ -198,7 +216,7 @@ describe('AddWishComponent Integration Tests', () => {
 
       req.flush({ success: true });
 
-      httpMock.expectOne(`${API_DB_URL}all-wishes`);
+      expectSearchRequest().flush(toSearchResponse([]));
     });
   });
 
@@ -246,7 +264,7 @@ describe('AddWishComponent Integration Tests', () => {
 
       req.flush({ success: true });
 
-      httpMock.expectOne(`${API_DB_URL}all-wishes`);
+      expectSearchRequest().flush(toSearchResponse([]));
     });
 
     it('should handle wish creation without image upload', () => {
@@ -262,7 +280,7 @@ describe('AddWishComponent Integration Tests', () => {
 
       req.flush({ success: true });
 
-      httpMock.expectOne(`${API_DB_URL}all-wishes`);
+      expectSearchRequest().flush(toSearchResponse([]));
     });
   });
 
@@ -314,7 +332,7 @@ describe('AddWishComponent Integration Tests', () => {
       const createReq = httpMock.expectOne(`${API_DB_URL}new-wish`);
       createReq.flush({ success: true });
 
-      const fetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
+      const fetchReq = expectSearchRequest();
       const updatedWishes = [
         createMockApiWish({ id: 1 }),
         createMockApiWish({
@@ -323,7 +341,7 @@ describe('AddWishComponent Integration Tests', () => {
           tags: ['newtag']
         })
       ];
-      fetchReq.flush(updatedWishes);
+      fetchReq.flush(toSearchResponse(updatedWishes));
 
       tick();
 
@@ -353,8 +371,7 @@ describe('AddWishComponent Integration Tests', () => {
       const req = httpMock.expectOne(`${API_DB_URL}new-wish`);
       req.flush({ success: true });
 
-      const fetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
-      fetchReq.flush([]);
+      expectSearchRequest().flush(toSearchResponse([]));
 
       tick();
 

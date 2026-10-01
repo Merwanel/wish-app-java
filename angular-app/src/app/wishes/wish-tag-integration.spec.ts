@@ -11,7 +11,7 @@ describe('Wish-Tag Integration Tests', () => {
   let wishService: WishService;
   let tagsService: TagsService;
   let httpMock: HttpTestingController;
-  
+
   const createMockApiWish = (overrides: any = {}) => ({
     id: 1,
     name: 'Test Wish',
@@ -21,6 +21,25 @@ describe('Wish-Tag Integration Tests', () => {
     createdAt: '2023-01-01T00:00:00.000Z',
     ...overrides
   });
+
+  const toSearchResponse = (wishes: ReturnType<typeof createMockApiWish>[] = []) => {
+    const tagCounts = new Map<string, number>();
+    wishes.forEach((w) => w.tags.forEach((t: string) => tagCounts.set(t, (tagCounts.get(t) || 0) + 1)));
+    return {
+      total: wishes.length,
+      wishes: wishes.map((w) => ({ ...w, highlightedName: null, highlightedComment: null })),
+      aggregations: {
+        tags: Array.from(tagCounts.entries()).map(([key, count]) => ({ key, count })),
+      },
+    };
+  };
+
+  const expectAndFlushSearch = (wishes: ReturnType<typeof createMockApiWish>[] = []) => {
+    const req = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes/search`);
+    expect(req.request.method).toBe('GET');
+    req.flush(toSearchResponse(wishes));
+    return req;
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -49,8 +68,7 @@ describe('Wish-Tag Integration Tests', () => {
       ];
 
       const fetchPromise = wishService.fetchWishes(tagsService);
-      const fetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
-      fetchReq.flush(initialWishes);
+      expectAndFlushSearch(initialWishes);
 
       await fetchPromise;
 
@@ -79,7 +97,6 @@ describe('Wish-Tag Integration Tests', () => {
       expect(createReq.request.method).toBe('POST');
       createReq.flush({ success: true });
 
-      const refetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
       const requestBody = JSON.parse(createReq.request.body);
       expect(requestBody.tags).toEqual(['common', 'newtag', 'fresh']);
 
@@ -93,7 +110,7 @@ describe('Wish-Tag Integration Tests', () => {
         })
       ];
 
-      refetchReq.flush(updatedWishes);
+      expectAndFlushSearch(updatedWishes);
 
 
       expect(tagsService.getTags.has('existing')).toBe(true);
@@ -115,8 +132,7 @@ describe('Wish-Tag Integration Tests', () => {
       ];
 
       const fetchPromise = wishService.fetchWishes(tagsService);
-      const fetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
-      fetchReq.flush(multipleWishes);
+      expectAndFlushSearch(multipleWishes);
       await fetchPromise;
 
       const expectedTags = new Set([
@@ -133,8 +149,7 @@ describe('Wish-Tag Integration Tests', () => {
 
     it('should handle empty wishes array for tag building', async () => {
       const fetchPromise = wishService.fetchWishes(tagsService);
-      const fetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
-      fetchReq.flush([]);
+      expectAndFlushSearch([]);
       await fetchPromise;
 
       expect(tagsService.getTags.size).toBe(0);
@@ -149,8 +164,7 @@ describe('Wish-Tag Integration Tests', () => {
       ];
 
       const fetchPromise = wishService.fetchWishes(tagsService);
-      const fetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
-      fetchReq.flush(initialWishes);
+      expectAndFlushSearch(initialWishes);
       await fetchPromise;
 
       expect(tagsService.getTags.has('old')).toBe(true);
@@ -176,12 +190,11 @@ describe('Wish-Tag Integration Tests', () => {
       });
       updateReq.flush(updatedWish);
 
-      const refetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
       const updatedWishes = [
         createMockApiWish({ id: 1, tags: ['new', 'common', 'updated'] }),
         createMockApiWish({ id: 2, tags: ['common', 'stable'] })
       ];
-      refetchReq.flush(updatedWishes);
+      expectAndFlushSearch(updatedWishes);
 
       await new Promise(resolve => setTimeout(resolve, 0));
 
@@ -199,8 +212,7 @@ describe('Wish-Tag Integration Tests', () => {
       ];
 
       const fetchPromise = wishService.fetchWishes(tagsService);
-      const fetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
-      fetchReq.flush(initialWishes);
+      expectAndFlushSearch(initialWishes);
       await fetchPromise;
 
       const wishUpdate: WishPartial = {
@@ -213,12 +225,11 @@ describe('Wish-Tag Integration Tests', () => {
       const updateReq = httpMock.expectOne(`${API_DB_URL}update-wish`);
       updateReq.flush(createMockApiWish({ id: 1, tags: [] }));
 
-      const refetchReq = httpMock.expectOne(`${API_DB_URL}all-wishes`);
       const updatedWishes = [
         createMockApiWish({ id: 1, tags: [] }),
         createMockApiWish({ id: 2, tags: ['keep', 'these'] })
       ];
-      refetchReq.flush(updatedWishes);
+      expectAndFlushSearch(updatedWishes);
 
       await new Promise(resolve => setTimeout(resolve, 0));
 

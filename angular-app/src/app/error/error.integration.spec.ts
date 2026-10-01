@@ -35,7 +35,7 @@ describe('ErrorComponent integration with app.config.ts', () => {
   });
 
   it('should navigate to /error on server error', fakeAsync(() => {
-    const req = httpMock.expectOne((r) => /all-wishes$/.test(r.url));
+    const req = httpMock.expectOne((r) => /wishes\/search/.test(r.url));
     req.flush('fail', { status: 500, statusText: 'Server Error' });
 
     const fixture = TestBed.createComponent(AppComponent);
@@ -48,7 +48,7 @@ describe('ErrorComponent integration with app.config.ts', () => {
   }));
 
   it('should have ErrorComponent instantiated', fakeAsync(() => {
-    const req = httpMock.expectOne((r) => /all-wishes$/.test(r.url));
+    const req = httpMock.expectOne((r) => /wishes\/search/.test(r.url));
     req.flush('fail', { status: 500, statusText: 'Server Error' });
 
     const fixture = TestBed.createComponent(AppComponent);
@@ -62,7 +62,7 @@ describe('ErrorComponent integration with app.config.ts', () => {
   }));
 
   it('should log something to the console', fakeAsync(() => {
-    const req = httpMock.expectOne((r) => /all-wishes$/.test(r.url));
+    const req = httpMock.expectOne((r) => /wishes\/search/.test(r.url));
     req.flush('fail', { status: 500, statusText: 'Server Error' });
 
     TestBed.createComponent(AppComponent);
