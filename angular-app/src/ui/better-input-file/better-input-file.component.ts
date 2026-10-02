@@ -1,10 +1,11 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 
 
 /**
  * remove the  text beside the input but at the same time maintain the tabulation beahavior
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-better-input-file',
   imports: [],
   templateUrl: './better-input-file.component.html',

@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Output, ViewChild, NgZone } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Output, ViewChild, NgZone } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { WishService } from '../../wish.service';
 import { DynamicInputComponent } from '../../../ui/dynamic-input/dynamic-input.component';
@@ -18,6 +18,7 @@ interface CompletionMessage {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-add-wish',
   imports: [FormsModule, DynamicInputComponent, TagsComponent, BetterInputFileComponent],
   templateUrl: './add-wish.component.html',

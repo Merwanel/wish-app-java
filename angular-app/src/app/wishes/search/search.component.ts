@@ -1,8 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnChanges, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter, OnChanges, OnInit } from '@angular/core';
 import { DynamicInputComponent } from "../../../ui/dynamic-input/dynamic-input.component";
 import { initLetters } from '../../utils/letters';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-search',
   imports: [DynamicInputComponent],
   templateUrl: './search.component.html',

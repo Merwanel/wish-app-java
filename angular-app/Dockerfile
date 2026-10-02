@@ -1,4 +1,4 @@
-FROM node:22.15.0-alpine AS builder
+FROM node:26.10.0-alpine AS builder
 WORKDIR /app
 
 # Workspace manifests + lockfile only (for layer caching). Copy every workspace
@@ -19,8 +19,6 @@ RUN npm run -w packages/shared-schemas build
 # Angular app source + config
 COPY --chown=node:node angular-app angular-app
 
-# Build using the workspace-installed CLI, which matches the app's Angular major (21).
-# No global @angular/cli install needed and no version-mismatch risk.
 RUN npm -w angular-app run build --configuration=production
 
 FROM nginx:1.28.0-alpine3.21-slim

@@ -1,9 +1,10 @@
 import { NgClass } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { Letter } from '../../schemas/wish.schema';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-display-letters',
   imports: [NgClass],
   templateUrl: './display-letters.component.html',

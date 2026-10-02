@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Output, Input, EventEmitter, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Output, Input, EventEmitter, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AutofocusDirective } from './autofocus.directive';
 import { NgClass } from '@angular/common';
@@ -26,6 +26,7 @@ import { initLetters } from '../../app/utils/letters';
  *   />
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-dynamic-input',
   imports: [FormsModule, AutofocusDirective, NgClass, DisplayLettersComponent],
   templateUrl: './dynamic-input.component.html',

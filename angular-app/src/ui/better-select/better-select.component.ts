@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { DisplayMode } from '../../app/wishes/wishes.component';
 import { NgClass } from '@angular/common';
 
@@ -13,6 +13,7 @@ export interface option {
  * select whose value in the dropdown can be different than when selected
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-better-select',
   imports: [NgClass],
   templateUrl: './better-select.component.html',

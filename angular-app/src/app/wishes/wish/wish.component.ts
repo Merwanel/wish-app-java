@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewChild, Output, EventEmitter, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, ViewChild, Output, EventEmitter, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { WishService } from '../../wish.service';
 import { WishPartial, WishWRate } from '../../../schemas/wish.schema';
@@ -10,6 +10,7 @@ import { DynamicTextAreaComponent } from '../../../ui/dynamic-text-area/dynamic-
 
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-wish',
   imports: [FormsModule, TagsComponent, DynamicTextAreaComponent, DatePipe],
   templateUrl: './wish.component.html',

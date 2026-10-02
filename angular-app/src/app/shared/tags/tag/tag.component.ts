@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TagsService } from '../../../tags.service';
 import { AutofocusDirective } from '../../../../ui/dynamic-input/autofocus.directive';
@@ -13,6 +13,7 @@ import { initLetters } from '../../../utils/letters';
 export type Tag = Wish['tags'][0]
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-tag',
   imports: [FormsModule, AutofocusDirective, DynamicInputComponent, DisplayLettersComponent, NgClass],
   templateUrl: './tag.component.html',

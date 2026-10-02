@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { WishService } from '../wish.service';
 import { WishComponent } from './wish/wish.component';
 import { TagsService } from '../tags.service';
@@ -13,6 +13,7 @@ import { WishWRate } from '../../schemas/wish.schema';
 export type DisplayMode = 'display-big-images' | 'display-list';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-wishes',
   imports: [WishComponent, AddWishComponent, SearchComponent, BetterSelectComponent, PaginationComponent],
   templateUrl: './wishes.component.html',

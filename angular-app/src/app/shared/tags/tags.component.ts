@@ -1,9 +1,10 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { Tag, TagComponent } from './tag/tag.component';
 import { WishService } from '../../wish.service';
 import { Wish } from '../../../schemas/wish.schema';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-tags',
   imports: [TagComponent],
   templateUrl: './tags.component.html',
