@@ -26,13 +26,36 @@ A CRUD app for wishes with a **Java 21 / Spring Boot 3** API, Angular frontend, 
 * **Sidecar**: Node.js image-scraper (Playwright)
 * **Infrastructure**: nginx, Redis 8, PostgreSQL 17, Elasticsearch 8.17, Docker
 
+## Development
+
+From the repo root (Docker Engine required for infra and for Java tests):
+
+```bash
+# Local loop: builds shared-schemas, starts Postgres/Redis/Elasticsearch if needed
+# (waits until healthy), then runs api-java + image-scraper + Angular together.
+npm run dev
+
+# Full production-like stack
+npm run dev:docker
+```
+
+Local URLs when using `npm run dev`:
+
+- Frontend (ng serve): http://localhost:4200
+- Backend API: http://localhost:3000
+- Image scraper: http://localhost:3001
+- Elasticsearch: http://localhost:9200
+
+`dev:api-java` runs `mvn -f api-java/pom.xml spring-boot:run` (Maven stays outside npm workspaces). Node modules are invoked with `npm run -w …`.
+
 ## Production
 
 ```bash
-docker compose up --build
+npm run dev:docker
+# or: docker compose up --build
 ```
 
-`api-java` builds via **`api-java/Dockerfile`** (multi-stage Maven → JRE). No local `mvn` required.
+`api-java` builds via **`api-java/Dockerfile`** (multi-stage Maven → JRE). No local `mvn` required for this path.
 
 - Frontend: http://localhost:8080
 - Backend API: http://localhost:3000
@@ -43,8 +66,8 @@ docker compose up --build
 `api-java/Dockerfile.local` is a **runtime-only** image that `COPY`s a prebuilt jar. Compose does **not** use it by default.
 
 ```bash
-cd api-java && mvn -DskipTests package
-docker build -f Dockerfile.local -t wish-api-java:local .
+npm run build:api-java
+docker build -f api-java/Dockerfile.local -t wish-api-java:local api-java
 # Then temporarily set api-java.build.dockerfile to Dockerfile.local if desired
 ```
 
@@ -58,17 +81,24 @@ docker build -f Dockerfile.local -t wish-api-java:local .
 
 ## Testing
 
-```bash
-# Java API — full suite uses Testcontainers (Postgres + Redis + Elasticsearch).
-# Docker Engine required; Compose is not. API pin 1.44 via surefire + docker-java.properties.
-cd api-java && mvn test
-# SpotBugs (fails on High+): mvn spotbugs:check
-# Jacoco XML: target/site/jacoco/jacoco.xml
+Root scripts build shared-schemas first when needed, then run suites in parallel (colored prefixes; fail-fast).
 
-# Angular (needs Google Chrome or Chromium on PATH)
+```bash
+# All modules (Angular needs Chrome/Chromium; api-java needs Docker for Testcontainers)
 npm test
-# Coverage (same as CI): npm -w angular-app test:coverage
+npm run test:coverage
+
+# One module
+npm run test:angular-app
+npm run test:scraper
+npm run test:api-java
+
+npm run test:coverage:angular-app
+npm run test:coverage:scraper
+npm run test:coverage:api-java
 ```
+
+Java details: Testcontainers (Postgres + Redis + Elasticsearch), Docker Engine required (Compose is not). API pin 1.44 via surefire + `docker-java.properties`. SpotBugs: `cd api-java && mvn spotbugs:check`. Jacoco XML: `api-java/target/site/jacoco/jacoco.xml`.
 
 ## Project Structure
 
@@ -77,5 +107,6 @@ npm test
 ├── api-java/                 # Spring Boot API
 ├── services/image-scraper/   # Playwright SSE scraper
 ├── packages/shared-schemas/  # Shared Zod schemas
+├── package.json              # Root npm scripts (dev / test / per-module)
 └── docker-compose.yaml
 ```

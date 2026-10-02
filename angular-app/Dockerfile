@@ -14,12 +14,12 @@ RUN npm ci --ignore-scripts
 
 # Build the shared-schemas package the Angular app depends on (tsc -> build/)
 COPY --chown=node:node packages/shared-schemas packages/shared-schemas
-RUN npm run -w packages/shared-schemas build
+RUN npm run build:schemas
 
 # Angular app source + config
 COPY --chown=node:node angular-app angular-app
 
-RUN npm -w angular-app run build --configuration=production
+RUN npm run build:angular-app
 
 FROM nginx:1.28.0-alpine3.21-slim
 COPY --from=builder /app/angular-app/dist/angular-app/browser /usr/share/nginx/html

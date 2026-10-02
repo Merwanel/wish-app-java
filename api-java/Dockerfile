@@ -11,7 +11,7 @@ RUN mvn -B dependency:go-offline
 # Copy source code
 COPY src/ src/
 
-# Build JAR
+# Build JAR (same as root `npm run build:api-java`; -B + clean suited to CI/Docker layers)
 RUN mvn -B clean package -DskipTests
 
 # Runtime stage

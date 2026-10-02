@@ -3,14 +3,32 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "pretest": "npm run build:schemas:dev",
-        "test": "npm run -w angular-app test:headless",
-        "build:dev": "npm run build:schemas:dev",
-        "build:schemas:dev": "npm run -w packages/shared-schemas build:dev",
-        "build:angular-app:dev": "npm run -w angular-app build",
+        "build:schemas": "npm run -w packages/shared-schemas build:dev",
+        "build:angular-app": "npm run -w angular-app build",
         "build:scraper": "npm run -w services/image-scraper build",
+        "build:api-java": "mvn -f api-java/pom.xml -DskipTests package",
+
+        "dev:infra": "docker compose up -d --wait prisma-postgres redis-cache elasticsearch",
+        "dev:angular-app": "npm run -w angular-app dev",
+        "dev:scraper": "npm run -w services/image-scraper dev",
+        "dev:api-java": "mvn -f api-java/pom.xml spring-boot:run",
+        "dev": "npm run build:schemas && npm run dev:infra && concurrently --kill-others -n api-java,scraper,angular-app -c green,magenta,blue \"npm run dev:api-java\" \"npm run dev:scraper\" \"npm run dev:angular-app\"",
+        "dev:docker": "docker compose up --build",
+
+        "pretest": "npm run build:schemas",
+        "pretest:angular-app": "npm run build:schemas",
+        "pretest:coverage": "npm run build:schemas",
+        "pretest:coverage:angular-app": "npm run build:schemas",
+
+        "test:angular-app": "npm run -w angular-app test:headless",
         "test:scraper": "npm run -w services/image-scraper test",
-        "dev": "npm run build:dev && npm run -w angular-app start"
+        "test:api-java": "mvn -f api-java/pom.xml test",
+        "test": "concurrently --kill-others-on-fail -n api-java,scraper,angular-app -c green,magenta,blue \"npm run test:api-java\" \"npm run test:scraper\" \"npm run test:angular-app\"",
+
+        "test:coverage:angular-app": "npm run -w angular-app test:coverage",
+        "test:coverage:scraper": "npm run -w services/image-scraper test:coverage",
+        "test:coverage:api-java": "mvn -f api-java/pom.xml test",
+        "test:coverage": "concurrently --kill-others-on-fail -n api-java,scraper,angular-app -c green,magenta,blue \"npm run test:coverage:api-java\" \"npm run test:coverage:scraper\" \"npm run test:coverage:angular-app\""
     },
     "workspaces": [
         "packages/*",

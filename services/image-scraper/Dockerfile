@@ -35,12 +35,12 @@ COPY --chown=node:node services/image-scraper/package.json ./package.json
 RUN npm install --omit=peer
 
 # Install headless browser binary
-RUN npx playwright install chromium-headless-shell
+RUN npm run install:headless-browser
 
 # Copy scraper service source and configurations
 COPY --chown=node:node services/image-scraper ./
 
-# Compile TypeScript
+# Compile TypeScript (same as root `npm run build:scraper`)
 RUN npm run build
 
 # Prune devDependencies for a lean image
