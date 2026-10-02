@@ -63,6 +63,8 @@ jobs:
           files: ./angular-app/coverage/angular-app/lcov.info
           flags: angular-app
           name: angular-app-coverage
+          fail_ci_if_error: true
+          disable_search: true
 
   angular-app-build-and-push:
     needs: angular-app-test

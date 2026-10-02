@@ -7,9 +7,9 @@
     "start": "node --max-old-space-size=4096 ../node_modules/@angular/cli/bin/ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "CHROME_BIN=\"$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium)\" ng test",
-    "test:headless": "CHROME_BIN=\"$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium)\" ng test --watch=false --browsers=ChromeHeadless",
-    "test:coverage": "CHROME_BIN=\"$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium)\" ng test --watch=false --browsers=ChromeHeadless --code-coverage",
+    "test": "CHROME_BIN=\"$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium)\" ng test --browsers=ChromeHeadlessNoSandbox",
+    "test:headless": "CHROME_BIN=\"$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium)\" ng test --watch=false --browsers=ChromeHeadlessNoSandbox",
+    "test:coverage": "CHROME_BIN=\"$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium)\" ng test --watch=false --browsers=ChromeHeadlessNoSandbox --code-coverage",
     "type-check": "ng build --configuration=development --progress=false",
     "lint": "eslint \"src/**/*.{ts,html}\"",
     "audit": "npm audit --audit-level=high"

@@ -11,6 +11,8 @@ target/
 *.js
 !eslint.config.js
 !**/eslint.config.js
+!karma.conf.js
+!**/karma.conf.js
 
 # Node
 node_modules/

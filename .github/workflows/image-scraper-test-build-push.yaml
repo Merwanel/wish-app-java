@@ -58,6 +58,8 @@ jobs:
           files: ./services/image-scraper/coverage/lcov.info
           flags: image-scraper
           name: image-scraper-coverage
+          fail_ci_if_error: true
+          disable_search: true
 
   image-scraper-build-and-push:
     needs: image-scraper-test

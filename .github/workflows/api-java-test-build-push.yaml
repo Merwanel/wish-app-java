@@ -45,6 +45,8 @@ jobs:
           files: ./api-java/target/site/jacoco/jacoco.xml
           flags: api-java
           name: api-java-coverage
+          fail_ci_if_error: true
+          disable_search: true
 
   api-java-build-and-push:
     needs: api-java-test
