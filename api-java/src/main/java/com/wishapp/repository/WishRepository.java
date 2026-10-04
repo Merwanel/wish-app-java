@@ -51,11 +51,5 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
      */
     @Query("SELECT w FROM Wish w WHERE w.updatedAt >= :timestamp ORDER BY w.updatedAt ASC")
     List<Wish> findByUpdatedAtGreaterThanEqual(@Param("timestamp") Instant timestamp);
-
-    /**
-     * @deprecated Prefer {@link #findByUpdatedAtGreaterThanEqual(Instant)} which includes soft-deletes.
-     */
-    @Deprecated
-    @Query("SELECT w FROM Wish w WHERE w.updatedAt >= :timestamp ORDER BY w.updatedAt ASC")
-    List<Wish> findByUpdatedAtAfter(@Param("timestamp") Instant timestamp);
 }
+

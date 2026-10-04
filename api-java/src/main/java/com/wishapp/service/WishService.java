@@ -49,18 +49,6 @@ public class WishService {
     }
 
     /**
-     * Find a non-deleted wish by ID.
-     *
-     * @param id the wish ID
-     * @return the wish DTO if found
-     */
-    public WishDTO findById(Long id) {
-        return wishRepository.findByIdAndDeletedAtIsNull(id)
-            .map(WishDTO::fromEntity)
-            .orElse(null);
-    }
-
-    /**
      * Create a new wish.
      *
      * @param request the create request with image base64
@@ -125,19 +113,6 @@ public class WishService {
         wishRepository.save(existing);
         syncAfterCommit();
         return true;
-    }
-
-    /**
-     * Find wishes updated after a timestamp (for delta sync).
-     *
-     * @param timestamp the reference timestamp
-     * @return list of updated wishes as DTOs
-     */
-    public List<WishDTO> findByUpdatedAtAfter(Instant timestamp) {
-        return wishRepository.findByUpdatedAtGreaterThanEqual(timestamp)
-            .stream()
-            .map(WishDTO::fromEntity)
-            .toList();
     }
 
     /**

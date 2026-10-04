@@ -28,9 +28,6 @@ public class ImageProcessingService {
         }
 
         byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-        if (imageBytes.length == 0) {
-            return null;
-        }
 
         try {
             ImmutableImage image = ImmutableImage.loader().fromBytes(imageBytes);
@@ -40,32 +37,6 @@ public class ImageProcessingService {
             return Base64.getEncoder().encodeToString(webpBytes);
         } catch (Exception e) {
             throw new RuntimeException("Failed to process image", e);
-        }
-    }
-
-    /**
-     * Convert base64 image to WebP without resizing.
-     *
-     * @param base64Image the base64-encoded image
-     * @return base64-encoded WebP image
-     */
-    public String convertToWebP(String base64Image) {
-        if (base64Image == null || base64Image.isEmpty()) {
-            return null;
-        }
-
-        byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-        if (imageBytes.length == 0) {
-            return null;
-        }
-
-        try {
-            ImmutableImage image = ImmutableImage.loader().fromBytes(imageBytes);
-            WebpWriter writer = new WebpWriter();
-            byte[] webpBytes = image.bytes(writer);
-            return Base64.getEncoder().encodeToString(webpBytes);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to convert image to WebP", e);
         }
     }
 }
