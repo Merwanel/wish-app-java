@@ -83,17 +83,11 @@ public class WishController {
         if (request.getId() == null) {
             return ResponseEntity.badRequest().build();
         }
-        WishDTO updated;
         try {
-            updated = wishService.update(request.getId(), request);
+            return ResponseEntity.ok(wishService.update(request.getId(), request));
         } catch (RuntimeException e) {
-            // Wish not found -> 404 (matches Express behaviour)
             return ResponseEntity.notFound().build();
         }
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(updated);
     }
 
     /**
