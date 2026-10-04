@@ -1,10 +1,20 @@
 package com.wishapp.integration;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.reset;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.wishapp.apijava.ApiJavaApplication;
 import com.wishapp.repository.WishRepository;
-import com.github.tomakehurst.wiremock.WireMockServer;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -25,6 +36,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * End-to-end integration tests exercising the real HTTP API (wish endpoints),
@@ -58,6 +70,9 @@ class WishApiIntegrationTest {
     @Autowired
     WishRepository wishRepository;
 
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+
     @DynamicPropertySource
     static void datasourceProperties(DynamicPropertyRegistry registry) {
         WishAppTestcontainers.registerProperties(registry);
@@ -72,6 +87,18 @@ class WishApiIntegrationTest {
         // Complete test isolation: wipe wishes between tests (same behaviour as Express spec)
         if (wishRepository != null) {
             wishRepository.deleteAll();
+        }
+    }
+
+    @BeforeEach
+    void resetWireMockAndSearchCache() {
+        configureFor("localhost", IMAGE_SCRAPER.port());
+        reset();
+        if (stringRedisTemplate != null) {
+            var keys = stringRedisTemplate.keys("search:results:*");
+            if (keys != null && !keys.isEmpty()) {
+                stringRedisTemplate.delete(keys);
+            }
         }
     }
 
@@ -98,6 +125,38 @@ class WishApiIntegrationTest {
                 new HttpEntity<>(body, jsonHeaders()), String.class);
             assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         }
+    }
+
+    private ResponseEntity<String> searchSse(String searchTerm) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.TEXT_EVENT_STREAM));
+        var uri = UriComponentsBuilder.fromHttpUrl(url("/search/{term}"))
+            .buildAndExpand(searchTerm)
+            .encode()
+            .toUri();
+        return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+    }
+
+    private static List<String> sseDataEvents(String body) {
+        List<String> events = new ArrayList<>();
+        if (body == null) {
+            return events;
+        }
+        for (String block : body.split("\n\n")) {
+            String trimmed = block.trim();
+            if (trimmed.startsWith("data:")) {
+                events.add(trimmed.substring("data:".length()).trim());
+            }
+        }
+        return events;
+    }
+
+    private void stubScraperOk(String event1, String event2) {
+        stubFor(get(urlMatching("/internal/scrape/.*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "text/event-stream")
+                .withBody("data: " + event1 + "\n\n" + "data: " + event2 + "\n\n")));
     }
 
     /* ------------------------------------------------------------------ */
@@ -167,6 +226,22 @@ class WishApiIntegrationTest {
         assertThat(wishRepository.count()).isEqualTo(before + 1);
         // persisted picture was converted/resized to WebP -> different bytes from input
         assertThat(wishRepository.findAll().get(0).getPicture()).isNotEmpty();
+    }
+
+    @Test
+    void newWish_withBlankName_shouldReturn400() {
+        Map<String, Object> body = new TreeMap<>();
+        body.put("name", "");
+        body.put("comment", "comment");
+        body.put("tags", List.of("t"));
+        body.put("picture", RED_DOT_IMAGE_BASE64);
+
+        ResponseEntity<String> res = restTemplate.exchange(
+            url("/new-wish"), HttpMethod.POST,
+            new HttpEntity<>(body, jsonHeaders()), String.class);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(wishRepository.count()).isZero();
     }
 
     /* ------------------------------------------------------------------ */
@@ -253,6 +328,13 @@ class WishApiIntegrationTest {
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
+    @Test
+    void deleteWish_withUnknownId_shouldReturn404() {
+        ResponseEntity<String> res = restTemplate.exchange(
+            url("/delete-wish/999999"), HttpMethod.DELETE, null, String.class);
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
     /* ------------------------------------------------------------------ */
     /* POST /convert-image                                                */
     /* ------------------------------------------------------------------ */
@@ -281,6 +363,21 @@ class WishApiIntegrationTest {
         assertThat(decoded[3]).isEqualTo((byte) 'F');
     }
 
+    @Test
+    void convertImage_withEmptyImage_returnsOkWithEmptyBody() {
+        Map<String, Object> body = new TreeMap<>();
+        body.put("image_base64", "");
+
+        ResponseEntity<String> res = restTemplate.exchange(
+            url("/convert-image"), HttpMethod.POST,
+            new HttpEntity<>(body, jsonHeaders()), String.class);
+
+        // Current contract: null conversion result is serialized as an empty/null JSON body
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(res.getBody() == null || res.getBody().isBlank() || "null".equals(res.getBody()))
+            .isTrue();
+    }
+
     /* ------------------------------------------------------------------ */
     /* GET /search/{term} (SSE)                                           */
     /* ------------------------------------------------------------------ */
@@ -289,27 +386,61 @@ class WishApiIntegrationTest {
     void search_shouldStreamSseResults() {
         String event1 = "{\"image\": \"" + RED_DOT_IMAGE_BASE64 + "\"}";
         String event2 = "{\"image\": \"" + RED_DOT_IMAGE_BASE64 + "\"}";
-        com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", IMAGE_SCRAPER.port());
-        com.github.tomakehurst.wiremock.client.WireMock.stubFor(
-            com.github.tomakehurst.wiremock.client.WireMock.get(
-                com.github.tomakehurst.wiremock.client.WireMock.urlMatching("/internal/scrape/.*"))
-                .willReturn(com.github.tomakehurst.wiremock.client.WireMock.aResponse()
-                    .withStatus(200)
-                    .withHeader("Content-Type", "text/event-stream")
-                    .withBody("data: " + event1 + "\n\n" + "data: " + event2 + "\n\n")));
+        stubScraperOk(event1, event2);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(List.of(MediaType.TEXT_EVENT_STREAM));
-        ResponseEntity<String> res = restTemplate.exchange(
-            url("/search/pokemon"), HttpMethod.GET,
-            new HttpEntity<>(headers), String.class);
+        ResponseEntity<String> res = searchSse("pokemon");
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(res.getHeaders().getContentType())
             .asString().contains("text/event-stream");
-        String body = res.getBody();
-        assertThat(body).contains(event1);
-        assertThat(body).contains(event2);
-        assertThat(body).contains("complete");
+        List<String> events = sseDataEvents(res.getBody());
+        assertThat(events).contains(event1, event2, "{\"type\": \"complete\"}");
+    }
+
+    @Test
+    void search_cacheHit_replaysSameEventsWithoutCallingScraperAgain() {
+        String event1 = "{\"image\": \"" + RED_DOT_IMAGE_BASE64 + "\"}";
+        String event2 = "{\"image\": \"second\"}";
+        stubScraperOk(event1, event2);
+
+        ResponseEntity<String> miss = searchSse("pikachu");
+        ResponseEntity<String> hit = searchSse("pikachu");
+
+        assertThat(miss.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(hit.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(sseDataEvents(hit.getBody())).isEqualTo(sseDataEvents(miss.getBody()));
+        assertThat(sseDataEvents(hit.getBody())).contains(
+            event1, event2, "{\"type\": \"complete\"}");
+        verify(1, getRequestedFor(urlMatching("/internal/scrape/.*")));
+    }
+
+    @Test
+    void search_encodesTermWhenCallingScraper() {
+        String event1 = "{\"image\": \"a\"}";
+        stubFor(get(urlEqualTo("/internal/scrape/foo%20bar"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "text/event-stream")
+                .withBody("data: " + event1 + "\n\n")));
+
+        ResponseEntity<String> res = searchSse("foo bar");
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(sseDataEvents(res.getBody())).contains(event1, "{\"type\": \"complete\"}");
+        verify(1, getRequestedFor(urlEqualTo("/internal/scrape/foo%20bar")));
+    }
+
+    @Test
+    void search_scraperFailure_doesNotWriteRedisCache() {
+        stubFor(get(urlMatching("/internal/scrape/.*"))
+            .willReturn(aResponse().withStatus(500)));
+
+        try {
+            searchSse("fail-term");
+        } catch (Exception ignored) {
+            // completeWithError may surface as a client transport error
+        }
+
+        assertThat(stringRedisTemplate.opsForValue().get("search:results:fail-term")).isNull();
     }
 }
