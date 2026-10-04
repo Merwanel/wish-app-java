@@ -55,6 +55,19 @@ class WishEtlServiceUnitTest {
     }
 
     @Test
+    void sync_emptyDeltas_returnsZeroAndDoesNotChangeBookmark() throws Exception {
+        String existingBookmark = "2026-01-01T00:00:00Z";
+        when(valueOperations.get("etl:last_sync")).thenReturn(existingBookmark);
+        when(wishRepository.findByUpdatedAtGreaterThanEqual(any())).thenReturn(List.of());
+
+        int processed = wishEtlService.sync(true);
+
+        assertThat(processed).isEqualTo(0);
+        verify(valueOperations, never()).set(anyString(), anyString());
+        verify(elasticsearchClient, never()).bulk(any(BulkRequest.class));
+    }
+
+    @Test
     void sync_bulkItemErrors_returnsZeroAndDoesNotAdvanceBookmark() throws Exception {
         Wish wish = activeWish(1L, Instant.parse("2026-01-01T00:00:00Z"));
         when(wishRepository.findByUpdatedAtGreaterThanEqual(any())).thenReturn(List.of(wish));

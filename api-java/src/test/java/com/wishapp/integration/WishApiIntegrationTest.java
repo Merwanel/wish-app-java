@@ -16,6 +16,7 @@ import com.wishapp.apijava.ApiJavaApplication;
 import com.wishapp.repository.WishRepository;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -72,6 +74,9 @@ class WishApiIntegrationTest {
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    RedisTemplate<String, String> redisTemplate;
 
     @DynamicPropertySource
     static void datasourceProperties(DynamicPropertyRegistry registry) {
@@ -244,6 +249,22 @@ class WishApiIntegrationTest {
         assertThat(wishRepository.count()).isZero();
     }
 
+    @Test
+    void newWish_withNullTags_storesEmptyTags() {
+        Map<String, Object> body = new HashMap<>();
+        body.put("name", "null-tags-wish");
+        body.put("comment", "comment");
+        body.put("tags", null);
+        body.put("picture", RED_DOT_IMAGE_BASE64);
+
+        ResponseEntity<String> res = restTemplate.exchange(
+            url("/new-wish"), HttpMethod.POST,
+            new HttpEntity<>(body, jsonHeaders()), String.class);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(wishRepository.findAll().get(0).getTags()).isEmpty();
+    }
+
     /* ------------------------------------------------------------------ */
     /* PATCH /update-wish                                                 */
     /* ------------------------------------------------------------------ */
@@ -270,6 +291,54 @@ class WishApiIntegrationTest {
         assertThat(res.getBody().get("comment")).isEqualTo(modifiedComment);
         assertThat(wishRepository.findById(id).orElseThrow().getComment())
             .isEqualTo(modifiedComment);
+    }
+
+    @Test
+    void updateWish_withoutPicture_leavesPictureUnchanged() {
+        seedWishes(1);
+        var existing = wishRepository.findAll().get(0);
+        Long id = existing.getId();
+        byte[] originalPicture = existing.getPicture().clone();
+
+        Map<String, Object> body = new TreeMap<>();
+        body.put("id", id);
+        body.put("name", "name for 0");
+        body.put("comment", "comment without new picture");
+        body.put("tags", List.of("tag-for-0"));
+        // picture intentionally omitted
+
+        ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
+            url("/update-wish"), HttpMethod.PATCH,
+            new HttpEntity<>(body, jsonHeaders()),
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(wishRepository.findById(id).orElseThrow().getPicture())
+            .isEqualTo(originalPicture);
+    }
+
+    @Test
+    void updateWish_withNullTags_leavesTagsUnchanged() {
+        seedWishes(1);
+        var existing = wishRepository.findAll().get(0);
+        Long id = existing.getId();
+        String[] originalTags = existing.getTags().clone();
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("id", id);
+        body.put("name", "name for 0");
+        body.put("comment", "comment with null tags");
+        body.put("tags", null);
+        body.put("picture", RED_DOT_IMAGE_BASE64);
+
+        ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
+            url("/update-wish"), HttpMethod.PATCH,
+            new HttpEntity<>(body, jsonHeaders()),
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(wishRepository.findById(id).orElseThrow().getTags())
+            .isEqualTo(originalTags);
     }
 
     @Test
@@ -442,5 +511,25 @@ class WishApiIntegrationTest {
         }
 
         assertThat(stringRedisTemplate.opsForValue().get("search:results:fail-term")).isNull();
+    }
+
+    @Test
+    void search_corruptRedisCache_fallsThroughToScraperAndStreamsValidSse() {
+        String term = "corrupt-cache-term";
+        // Write through the same RedisTemplate/serializer as SearchController so get()
+        // succeeds, then ObjectMapper fails to parse the value as a List (corrupt cache).
+        redisTemplate.opsForValue().set("search:results:" + term, "not-valid-json{{{");
+
+        String event1 = "{\"image\": \"" + RED_DOT_IMAGE_BASE64 + "\"}";
+        String event2 = "{\"image\": \"fallback\"}";
+        stubScraperOk(event1, event2);
+
+        ResponseEntity<String> res = searchSse(term);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(res.getHeaders().getContentType())
+            .asString().contains("text/event-stream");
+        assertThat(sseDataEvents(res.getBody())).contains(event1, event2, "{\"type\": \"complete\"}");
+        verify(1, getRequestedFor(urlMatching("/internal/scrape/.*")));
     }
 }

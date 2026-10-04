@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * {@code GET /wishes/search} against Testcontainers (Postgres, Redis, Elasticsearch).
@@ -130,6 +131,62 @@ class WishSearchControllerTest {
         List<Map<String, Object>> wishes = (List<Map<String, Object>>) res.getBody().get("wishes");
         assertThat(wishes).hasSize(1);
         assertThat(wishes.get(0).get("name")).isEqualTo("Zelda");
+    }
+
+    @Test
+    void blankTagFilter_behavesLikeNoTag() {
+        saveAndSync("Zelda", new String[] {"gaming"}, "game", new byte[] {1});
+        saveAndSync("Cookbook", new String[] {"cooking"}, "food", new byte[] {2});
+
+        var emptyTagUri = UriComponentsBuilder.fromHttpUrl(url("/wishes/search"))
+            .queryParam("tag", "")
+            .build()
+            .toUri();
+        var whitespaceTagUri = UriComponentsBuilder.fromHttpUrl(url("/wishes/search"))
+            .queryParam("tag", " ")
+            .build()
+            .encode()
+            .toUri();
+
+        ResponseEntity<Map<String, Object>> emptyTag = restTemplate.exchange(
+            emptyTagUri,
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<>() {});
+        ResponseEntity<Map<String, Object>> whitespaceTag = restTemplate.exchange(
+            whitespaceTagUri,
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<>() {});
+
+        assertThat(((Number) emptyTag.getBody().get("total")).longValue()).isEqualTo(2);
+        assertThat(((Number) whitespaceTag.getBody().get("total")).longValue()).isEqualTo(2);
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> emptyTagWishes =
+            (List<Map<String, Object>>) emptyTag.getBody().get("wishes");
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> whitespaceTagWishes =
+            (List<Map<String, Object>>) whitespaceTag.getBody().get("wishes");
+        assertThat(emptyTagWishes).hasSize(2);
+        assertThat(whitespaceTagWishes).hasSize(2);
+    }
+
+    @Test
+    void search_termMatchingNothing_returnsEmptyWishes() {
+        saveAndSync("Zelda", new String[] {"gaming"}, "game", new byte[] {1});
+
+        ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
+            url("/wishes/search?q=zzzznonexistent999xyz"),
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<>() {});
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(((Number) res.getBody().get("total")).longValue()).isEqualTo(0);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> wishes = (List<Map<String, Object>>) res.getBody().get("wishes");
+        assertThat(wishes).isEmpty();
     }
 
     @Test
