@@ -8,16 +8,17 @@ import org.springframework.stereotype.Service;
 /**
  * Service for image processing operations.
  *
- * <p>Converts images to WebP format with resizing (200x300) and quality settings.</p>
+ * <p>Matches Express/sharp: cover-fit to 200x300 (center crop) and WebP quality 60.</p>
  */
 @Service
 public class ImageProcessingService {
 
     private static final int TARGET_WIDTH = 200;
     private static final int TARGET_HEIGHT = 300;
+    private static final WebpWriter WEBP_WRITER = WebpWriter.DEFAULT.withQ(60);
 
     /**
-     * Resize and convert base64 image to WebP.
+     * Resize (cover) and convert base64 image to WebP.
      *
      * @param base64Image the base64-encoded image
      * @return base64-encoded WebP image
@@ -31,9 +32,8 @@ public class ImageProcessingService {
 
         try {
             ImmutableImage image = ImmutableImage.loader().fromBytes(imageBytes);
-            ImmutableImage resized = image.resizeTo(TARGET_WIDTH, TARGET_HEIGHT);
-            WebpWriter writer = new WebpWriter();
-            byte[] webpBytes = resized.bytes(writer);
+            ImmutableImage resized = image.cover(TARGET_WIDTH, TARGET_HEIGHT);
+            byte[] webpBytes = resized.bytes(WEBP_WRITER);
             return Base64.getEncoder().encodeToString(webpBytes);
         } catch (Exception e) {
             throw new RuntimeException("Failed to process image", e);

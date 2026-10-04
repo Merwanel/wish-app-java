@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -58,10 +58,11 @@ public class SearchController {
         private final String imageScraperUrl;
         private final RedisTemplate<String, String> redisTemplate;
         private final ObjectMapper objectMapper;
-        
+
         // Cache TTL in seconds (1 hour)
         private static final long CACHE_TTL_SECONDS = 3600;
         private static final String CACHE_KEY_PREFIX = "search:results:";
+        private static final String COMPLETE_EVENT = "{\"type\": \"complete\"}";
 
         public SseEmitterManager(
                 @Value("${image.scraper.url:http://localhost:3001}") String imageScraperUrl,
@@ -94,7 +95,7 @@ public class SearchController {
         private void startProxyWithCaching(String searchTerm, SseEmitter emitter) {
             new Thread(() -> {
                 String cacheKey = CACHE_KEY_PREFIX + searchTerm.toLowerCase();
-                
+
                 // Try to get from cache first
                 List<String> cachedResults = getFromCache(cacheKey);
                 if (cachedResults != null && !cachedResults.isEmpty()) {
@@ -102,7 +103,7 @@ public class SearchController {
                     sendCachedResults(cachedResults, emitter);
                     return;
                 }
-                
+
                 // If not in cache, fetch from image-scraper and cache results
                 fetchAndCache(searchTerm, cacheKey, emitter);
             }).start();
@@ -112,7 +113,7 @@ public class SearchController {
             try {
                 String cachedData = redisTemplate.opsForValue().get(cacheKey);
                 if (cachedData != null && !cachedData.isEmpty()) {
-                    return objectMapper.readValue(cachedData, 
+                    return objectMapper.readValue(cachedData,
                         objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
                 }
             } catch (JsonProcessingException e) {
@@ -124,9 +125,10 @@ public class SearchController {
         private void sendCachedResults(List<String> cachedResults, SseEmitter emitter) {
             try {
                 for (String result : cachedResults) {
-                    emitter.send("data: " + result);
+                    // SseEmitter.send already prefixes "data:"
+                    emitter.send(result);
                 }
-                emitter.send("data: {\"type\": \"complete\", \"cached\": true}");
+                emitter.send(COMPLETE_EVENT);
                 emitter.complete();
             } catch (IOException e) {
                 emitter.completeWithError(e);
@@ -137,20 +139,24 @@ public class SearchController {
             HttpURLConnection connection = null;
             BufferedReader reader = null;
             List<String> results = new ArrayList<>();
-            
+
             try {
-                URL url = new URL(imageScraperUrl + "/internal/scrape/" + searchTerm);
-                connection = (HttpURLConnection) url.openConnection();
+                String encodedTerm = URLEncoder.encode(searchTerm, StandardCharsets.UTF_8)
+                    .replace("+", "%20");
+                URI uri = URI.create(imageScraperUrl + "/internal/scrape/" + encodedTerm);
+                connection = (HttpURLConnection) uri.toURL().openConnection();
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(55000);
 
                 if (connection.getResponseCode() != 200) {
-                    emitter.completeWithError(new Exception("Failed to connect to image-scraper: " + connection.getResponseCode()));
+                    emitter.completeWithError(new Exception(
+                        "Failed to connect to image-scraper: " + connection.getResponseCode()));
                     return;
                 }
 
-                reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+                reader = new BufferedReader(new InputStreamReader(
+                    connection.getInputStream(), StandardCharsets.UTF_8));
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (line.startsWith("data:")) {
@@ -162,10 +168,10 @@ public class SearchController {
                     }
                 }
 
-                // Cache the results
+                // Cache the results only after a successful stream
                 cacheResults(cacheKey, results);
-                
-                emitter.send("data: {\"type\": \"complete\", \"cached\": false}");
+
+                emitter.send(COMPLETE_EVENT);
                 emitter.complete();
             } catch (Exception e) {
                 emitter.completeWithError(e);

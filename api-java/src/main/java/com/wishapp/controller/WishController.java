@@ -5,6 +5,7 @@ import com.wishapp.domain.WishDTO;
 import com.wishapp.domain.UpdateWishRequest;
 import com.wishapp.service.WishService;
 import jakarta.validation.Valid;
+import java.lang.management.ManagementFactory;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -43,7 +44,7 @@ public class WishController {
         return ResponseEntity.ok(new StatusResponse(
             "ok",
             Instant.now().toString(),
-            System.currentTimeMillis() / 1000.0
+            ManagementFactory.getRuntimeMXBean().getUptime() / 1000.0
         ));
     }
 
