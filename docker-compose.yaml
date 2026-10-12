@@ -14,14 +14,14 @@ services:
     depends_on:
       redis-cache:
         condition: service_healthy
-      prisma-postgres:
+      flyway-postgres:
         condition: service_healthy
       image-scraper:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://prisma-postgres:5432/mydatabase
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://flyway-postgres:5432/mydatabase
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=mypassword
       - SPRING_REDIS_HOST=redis-cache
@@ -86,9 +86,9 @@ services:
       retries: 20
       start_period: 40s
 
-  prisma-postgres:
+  flyway-postgres:
     image: postgres:17.5-alpine
-    container_name: prisma-postgres
+    container_name: flyway-postgres
     hostname: postgres
     environment:
       POSTGRES_USER: postgres
@@ -138,7 +138,7 @@ services:
     depends_on:
       api-java:
         condition: service_healthy
-      prisma-postgres:
+      flyway-postgres:
         condition: service_healthy
       angular-app:
         condition: service_healthy

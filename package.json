@@ -8,7 +8,7 @@
         "build:scraper": "npm run -w services/image-scraper build",
         "build:api-java": "mvn -f api-java/pom.xml -DskipTests package",
 
-        "dev:infra": "docker compose up -d --wait prisma-postgres redis-cache elasticsearch",
+        "dev:infra": "docker compose up -d --wait flyway-postgres redis-cache elasticsearch",
         "dev:angular-app": "npm run -w angular-app dev",
         "dev:scraper": "npm run -w services/image-scraper dev",
         "dev:api-java": "mvn -f api-java/pom.xml spring-boot:run",
