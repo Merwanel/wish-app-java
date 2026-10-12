@@ -3,7 +3,7 @@ package com.wishapp.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import com.wishapp.apijava.ApiJavaApplication;
+import com.wishapp.ApiJavaApplication;
 import com.wishapp.domain.Wish;
 import com.wishapp.repository.WishRepository;
 import com.wishapp.service.WishEtlService;

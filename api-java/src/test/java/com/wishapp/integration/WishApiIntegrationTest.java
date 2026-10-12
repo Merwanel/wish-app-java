@@ -12,7 +12,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.wishapp.apijava.ApiJavaApplication;
+import com.wishapp.ApiJavaApplication;
 import com.wishapp.repository.WishRepository;
 import java.util.ArrayList;
 import java.util.Base64;
