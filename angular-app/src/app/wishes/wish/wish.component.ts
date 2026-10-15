@@ -33,6 +33,7 @@ export class WishComponent implements OnInit {
 
   createImageSrc() {
     if (this.oldImageSrc) {
+      // a blob URL stays allocated until revoked, so drop the previous picture
       URL.revokeObjectURL(this.oldImageSrc);
     }
     this.imagesrc = this.wish.picture.length

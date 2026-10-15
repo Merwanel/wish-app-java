@@ -25,6 +25,7 @@ export function convertBase64ToUint8ArrayAndAddUUIDToTags(wish: z.infer<typeof W
   const w = convertBase64ToUint8(wish);
   return {
     ...w,
+    // deterministic id from the tag index so @for (track tag.id) keeps the same input across reloads
     tags: w.tags.map((tag, i) => ({ id: uuidv5(String(i), uuidv5.DNS), tag }))
   };
 }

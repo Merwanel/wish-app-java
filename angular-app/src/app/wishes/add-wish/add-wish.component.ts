@@ -99,7 +99,8 @@ export class AddWishComponent {
     this.isSearchingImages = true;
 
     const eventSource: EventSource = new EventSource(`${API_DB_URL}search/${encodeURIComponent(searchTerm)}`);
-    
+
+    // EventSource callbacks run outside Angular, so the view would not refresh without ngZone.run
     eventSource.onmessage = (event: MessageEvent): void => {
       this.ngZone.run(() => {
         try {

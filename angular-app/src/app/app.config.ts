@@ -14,6 +14,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const appConfigService = inject(WishService);
       const router = inject(Router);
+      // if this first search fails, send the user to /error before the list renders
       return appConfigService.fetchWishes().catch((error) => {
         console.error('App initialization failed:', error);
         return router.navigate(['/error']);

@@ -40,6 +40,7 @@ export class TagsComponent {
 
   onClickDoAdd() {
     if(this.wish.tags.length === 0 || this.wish.tags[this.wish.tags.length-1].val !== "") {
+      // marks the blank input so an empty draft is not saved
       this.wish.tags.push({id:"adding",val:'', letters:[]}) ;
     }
   }

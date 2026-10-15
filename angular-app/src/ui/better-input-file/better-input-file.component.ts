@@ -17,6 +17,7 @@ export class BetterInputFileComponent {
   @ViewChild('uploadRef') uploadRef!: ElementRef<HTMLInputElement>;
   
   onEnterDoClickUpload() {
+    // the file input is hidden, so Enter on the label has to click it
     this.uploadRef.nativeElement.click() ;
   }
   onFileSelectedDoEmit(event: Event) {

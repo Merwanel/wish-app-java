@@ -10,6 +10,21 @@ import { initLetters } from '../../app/utils/letters';
 /**
  * An input whose width adapts to its content
  * 
+ * Implementation details: 
+ * Two elements, because each one has what the other lacks
+ * + #InputRef shows the text , text that can be highlighted.
+ * and stays in normal flow, so the box takes its size from that text.
+ * + A textarea cannot paint those spans, and its own box does not follow its content.
+ *
+ * The textarea is the editor: caret, selection, keyboard, ngModel.
+ * It sits position:absolute over #InputRef, with color:transparent, so only the caret shows.
+ *
+ * The single-line input uses the same pair so the width can hug the text.
+ * Here the div has a fixed width and wraps, so the box grows in height.
+ * 
+ * In a way it reimplements an editable div. 
+ * But an editable div inserts a lot of waste in the text, like <br> and <p> tags.
+ * 
  * USAGE :
  *  
  *   <app-dynamic-input [(inputModel)]="value" />
@@ -52,7 +67,8 @@ export class DynamicTextAreaComponent implements AfterViewInit {
 
 
   ngAfterViewInit() {
-    this.ref.emit(this.InputRef) ; 
+    this.ref.emit(this.InputRef) ;
+    // the visible size comes from the letters div; the textarea does not grow on its own
     this.textAreatRef.nativeElement.style.height = this.InputRef.nativeElement.style.height 
     this.textAreatRef.nativeElement.style.width = this.InputRef.nativeElement.style.width
  
@@ -60,6 +76,7 @@ export class DynamicTextAreaComponent implements AfterViewInit {
 
   onInputDoSync() {
     this.inputModel.letters = initLetters(this.inputModel.val)
+    // keep the transparent textarea as tall as the text just typed
     this.textAreatRef.nativeElement.style.height  = this.InputRef.nativeElement.style.height
   }
   

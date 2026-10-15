@@ -45,6 +45,7 @@ export class WishService {
   private selectedTag: string | null = null;
   private total = 0;
   private tagFacets: TagFacet[] = [];
+  private searchGeneration = 0;
   private headers = new HttpHeaders({ 'Content-Type': 'application/json' });
   private tagsService?: TagsService;
 
@@ -105,12 +106,18 @@ export class WishService {
       params = params.set('tag', this.selectedTag);
     }
 
+    const generation = ++this.searchGeneration;
+
     return new Promise<void>((resolve, reject) => {
       this.http
         .get(`${API_DB_URL}wishes/search`, { params })
         .pipe(map((body) => WishSearchResponseSchema.parse(body)))
         .subscribe({
           next: (response) => {
+            if (generation !== this.searchGeneration) {
+              resolve();
+              return;
+            }
             this.total = response.total;
             this.tagFacets = response.aggregations.tags;
             this.wishes = convertBase64ToUint8ArrayAndAddUUIDToTagsAndAddLettersArray(
@@ -130,7 +137,13 @@ export class WishService {
             }
             resolve();
           },
-          error: (err) => reject(err),
+          error: (err) => {
+            if (generation !== this.searchGeneration) {
+              resolve();
+              return;
+            }
+            reject(err);
+          },
         });
     });
   }
@@ -178,6 +191,7 @@ export class WishService {
   }
 
   deleteWish(id: number) {
+    // fire the DELETE, then reload the stored list from the first page
     this.http.delete(`${API_DB_URL}delete-wish/${id}`).subscribe(() => {
       this.fetchWishes();
     });

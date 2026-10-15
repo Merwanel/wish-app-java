@@ -23,6 +23,7 @@ export class SearchComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
+    // the URL owns the text, so back and forward refill this field
     this.search.val = this.val ;
     this.search.letters = initLetters(this.search.val) ;
   }
@@ -33,6 +34,7 @@ export class SearchComponent implements OnInit, OnChanges {
   
   onEnterDoUnfocus(event: KeyboardEvent) {
     if (event.key === 'Enter') {
+      // move focus to the window so the search field blurs without a handle on the inner input
       window.focus();
     }
   }

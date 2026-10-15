@@ -39,7 +39,6 @@ export class WishesComponent implements OnInit, OnDestroy {
   private routeSubscription!: Subscription;
   private searchInput$ = new Subject<string>();
   private searchSubscription!: Subscription;
-  private reloadGeneration = 0;
 
   constructor(
     public WishService: WishService,
@@ -70,7 +69,6 @@ export class WishesComponent implements OnInit, OnDestroy {
   }
 
   private async reloadFromApi() {
-    const generation = ++this.reloadGeneration;
     const q = this.search_words.join(' ');
     const offset = (this.currentPage - 1) * this.itemsPerPage;
     await this.WishService.searchWishes({
@@ -80,9 +78,6 @@ export class WishesComponent implements OnInit, OnDestroy {
       offset,
       tagsService: this.TagsService,
     });
-    if (generation !== this.reloadGeneration) {
-      return;
-    }
     this.wishes_matching = this.WishService.getWishes;
     this.totalPages = Math.max(1, Math.ceil(this.WishService.getTotal / this.itemsPerPage));
     this.display_wishes = this.wishes_matching.map((wish, idx) => ({
@@ -99,6 +94,7 @@ export class WishesComponent implements OnInit, OnDestroy {
   }
 
   async goToPage(page: number) {
+    // an out-of-range page loops instead of clamping
     if (page < 1) {
       page = this.totalPages;
     }

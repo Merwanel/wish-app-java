@@ -39,6 +39,7 @@ export class ThemeService {
       document.body.classList.remove(theme.className);
     });
 
+    // light colors already apply with no class on <body>
     if (themeName !== 'light') {
       const theme = this.availableThemes.find(t => t.name === themeName);
       if (theme) {
