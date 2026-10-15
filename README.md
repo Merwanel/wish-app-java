@@ -1,6 +1,6 @@
 # Wish List Application
 
-A CRUD app for wishes with a **Java 21 / Spring Boot 3** API, Angular frontend, and a Node image-scraper sidecar.
+A wish list app with Elasticsearch-powered search and online image lookup: a **Java 21 / Spring Boot 3** API, an Angular frontend, and an image-scraper.
 
 | | Tests | Coverage |
 |---------|-------|----------|
@@ -14,17 +14,36 @@ A CRUD app for wishes with a **Java 21 / Spring Boot 3** API, Angular frontend, 
 
 - **Wish Management**: Create, update, and delete wishes with names, comments, tags, and images
 - **Elasticsearch Search**: Fuzzy search, tag facets, and `<mark>` highlights via `GET /wishes/search`
-- **Image Processing**: Upload images with automatic WebP resizing
-- **Online Image Search**: SSE-proxied Playwright scraping for wish images
-- **Delta ETL**: Postgres → Elasticsearch synced on a schedule and after writes (Redis bookmark `etl:last_sync`)
-- **Type-Safety**: Zod schemas shared with the Angular frontend
+- **Browsing UI**: Tag facet filters, pagination , two display modes, and several themes persisted in `localStorage`
+- **Image Processing**: Uploads are cropped to 200×300 and converted to WebP
+- **Online Image Search**: Playwright scraping of web-engines streamed to the UI over SSE through api-java
+
+## How it works
+
+- **Postgres is the source of truth.** Deletes are soft.
+- **Seeding**: the first start seeds the db. That seeding phase is skipped during tests 
+- **Delta ETL to Elasticsearch.** `WishEtlService` indexes rows whose `updated_at` is at or after a bookmark stored in Redis. Soft-deleted rows are removed from the index. A sync runs:
+  - every 5s,
+  - once at startup,
+  - after each write transaction commits.
+- **Search** queries Elasticsearch, then loads the pictures from Postgres for the returned ids.
+- **Image search**: `GET /search/{term}` proxies the SSE stream of `image-scraper` (`GET /internal/scrape/{term}`, one image per search engine, run in parallel in worker threads). Complete results are cached in Redis for 1 hour.
+- **Redis therefore has two roles**: the ETL bookmark and the scraper-result cache.
 
 ## Tech Stack
 
-* **Frontend**: Angular 19, TypeScript, Zod
+* **Frontend**: Angular 22, TypeScript, Zod
 * **API**: Java 21, Spring Boot 3, Spring Data JPA, Flyway, elasticsearch-java, Redis
-* **Sidecar**: Node.js image-scraper (Playwright)
-* **Infrastructure**: nginx, Redis 8, PostgreSQL 17, Elasticsearch 8.17, Docker
+* **Sidecar**: image-scraper (Express, Playwright)
+* **Infrastructure**: nginx, Redis, PostgreSQL, Elasticsearch, Docker
+
+## Prerequisites
+
+- **Docker Engine** with Compose (infra, production-like stack, and the Java integration tests)
+- **JDK 21** and **Maven 3.9+** (only for the local loop and Java tests; the Docker build needs neither)
+- **Node.js 22+ and **npm**
+- **Chrome/Chromium** for the Angular (Karma) tests
+- For real scraping outside Docker: `npm run -w services/image-scraper install:headless-browser` (downloads the Playwright headless browser; not needed for tests)
 
 ## Development
 
@@ -34,19 +53,17 @@ From the repo root (Docker Engine required for infra and for Java tests):
 # Local loop: builds shared-schemas, starts Postgres/Redis/Elasticsearch if needed
 # (waits until healthy), then runs api-java + image-scraper + Angular together.
 npm run dev
-
-# Full production-like stack
-npm run dev:docker
 ```
 
 Local URLs when using `npm run dev`:
 
-- Frontend (ng serve): http://localhost:4200
+- Frontend : http://localhost:4200
 - Backend API: http://localhost:3000
 - Image scraper: http://localhost:3001
 - Elasticsearch: http://localhost:9200
 
-`dev:api-java` runs `mvn -f api-java/pom.xml spring-boot:run` (Maven stays outside npm workspaces). Node modules are invoked with `npm run -w …`.
+`npm run dev` leaves Postgres, Redis and Elasticsearch running after you stop it (see [Stopping and resetting](#stopping-and-resetting)).
+
 
 ## Production
 
@@ -55,29 +72,25 @@ npm run dev:docker
 # or: docker compose up --build
 ```
 
-`api-java` builds via **`api-java/Dockerfile`** (multi-stage Maven → JRE). No local `mvn` required for this path.
+**nginx** serves the Angular build on port 8080 and reverse-proxies the API routes to `api-java:3000`, so that CORS is not a problem.
 
-- Frontend: http://localhost:8080
-- Backend API: http://localhost:3000
-- Elasticsearch: http://localhost:9200
+Published ports:
 
-### Fast local API image (optional)
+| Port | Service |
+|---|---|
+| 8080 | Frontend (nginx) |
+| 3000 | api-java |
+| 3001 | image-scraper |
+| 9200 | Elasticsearch |
+| 5432 | PostgreSQL |
+| 6379 | Redis |
 
-`api-java/Dockerfile.local` is a **runtime-only** image that `COPY`s a prebuilt jar. Compose does **not** use it by default.
+### Stopping and resetting
 
 ```bash
-npm run build:api-java
-docker build -f api-java/Dockerfile.local -t wish-api-java:local api-java
-# Then temporarily set api-java.build.dockerfile to Dockerfile.local if desired
+docker compose down        # stop and remove containers (keeps data volumes)
+docker compose down -v     # also wipes Postgres/Redis/Elasticsearch volumes
 ```
-
-## API notes
-
-| Endpoint | Status |
-|---|---|
-| `GET /wishes/search` | **Primary list/search** used by the Angular UI (empty `q` = browse) |
-| `GET /all-wishes` | **Legacy / debug** — kept for curl and older tests; UI must not use it for the main list |
-| `POST /internal/etl/sync` | Manual delta ETL trigger (refresh=true) |
 
 ## Testing
 
@@ -98,15 +111,22 @@ npm run test:coverage:scraper
 npm run test:coverage:api-java
 ```
 
-Java details: Testcontainers (Postgres + Redis + Elasticsearch), Docker Engine required (Compose is not). API pin 1.44 via surefire + `docker-java.properties`. SpotBugs: `cd api-java && mvn spotbugs:check`. Jacoco XML: `api-java/target/site/jacoco/jacoco.xml`.
+## CI/CD
+
+One GitHub Actions workflow per module (`.github/workflows/*-test-build-push.yaml`), triggered on pushes to `main` that touch the module:
+
+- **Checks**: tests with coverage uploaded to Codecov (one flag per module, see `codecov.yml`); SpotBugs (api-java); lint, type-check and `npm audit` (angular-app, image-scraper).
+- **Images**: after the tests pass, the shared `docker-build-push.yml` workflow builds the image and pushes it to GitHub Container Registry as `ghcr.io/<owner>/wish-app-java-<service>` tagged `latest` and with a CalVer tag (`YYYY.MM.DD-HH.MM.SS`), then runs a Trivy scan.
 
 ## Project Structure
 
 ```
-├── angular-app/              # Angular frontend
+├── .github/                  # CI workflows and the CalVer action
+├── angular-app/              # Angular frontend (+ nginx.conf for the Docker image)
 ├── api-java/                 # Spring Boot API
 ├── services/image-scraper/   # Playwright SSE scraper
 ├── packages/shared-schemas/  # Shared Zod schemas
+├── codecov.yml               # Coverage flags per module
 ├── package.json              # Root npm scripts (dev / test / per-module)
 └── docker-compose.yaml
 ```
