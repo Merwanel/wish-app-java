@@ -10,7 +10,7 @@
         "dev:infra": "docker compose up -d --wait flyway-postgres redis-cache elasticsearch",
         "dev:angular-app": "npm run -w angular-app dev",
         "dev:scraper": "npm run -w services/image-scraper dev",
-        "dev:api-java": "mvn -f api-java/pom.xml spring-boot:run",
+        "dev:api-java": "mvn -f api-java/pom.xml clean && mvn -f api-java/pom.xml spring-boot:run",
         "dev": "npm run build:schemas && npm run dev:infra && concurrently --kill-others -n api-java,scraper,angular-app -c green,magenta,blue \"npm run dev:api-java\" \"npm run dev:scraper\" \"npm run dev:angular-app\"",
         "dev:docker": "docker compose up --build",
         "pretest": "npm run build:schemas",
