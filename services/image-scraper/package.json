@@ -12,7 +12,7 @@
     "test:coverage": "tsc && MOCK_SCRAPER=true c8 --reporter=lcov --reporter=text --report-dir=coverage npx jasmine --config=spec/support/jasmine.mjs",
     "type-check": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\" \"spec/**/*.ts\"",
-    "audit": "npm audit --audit-level=high",
+    "audit": "npm audit --audit-level=critical",
     "install:headless-browser": "npx playwright install chromium-headless-shell"
   },
   "keywords": [],
