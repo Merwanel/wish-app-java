@@ -41,7 +41,7 @@ A wish list app with Elasticsearch-powered search and online image lookup: a **J
 
 - **Docker Engine** with Compose (infra, production-like stack, and the Java integration tests)
 - **JDK 21** and **Maven 3.9+** (only for the local loop and Java tests; the Docker build needs neither)
-- **Node.js 22+ and **npm**
+- **Node.js 22+** and **npm**
 - **Chrome/Chromium** for the Angular (Karma) tests
 - For real scraping outside Docker: `npm run -w services/image-scraper install:headless-browser` (downloads the Playwright headless browser; not needed for tests)
 
