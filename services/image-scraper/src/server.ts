@@ -16,7 +16,6 @@ app.use(
   express.json({ limit: "50mb" })
 );
 
-// Health check endpoint (Milestone 1.1 requirement)
 app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({
     status: "ok",
@@ -105,7 +104,6 @@ function processByWorker(
   };
 }
 
-// Scrape endpoint (Milestone 1.1 requirement: GET /internal/scrape/:searchTerm)
 app.get("/internal/scrape/:searchTerm", (req: Request, res: Response) => {
   const rawSearchTerm = req.params.searchTerm;
   const searchTerm = Array.isArray(rawSearchTerm) ? rawSearchTerm[0] : rawSearchTerm;
