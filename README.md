@@ -1,6 +1,6 @@
 # Wish List Application
 
-A wish list app with Elasticsearch-powered search and online image lookup: a **Java 21 / Spring Boot 3** API, an Angular frontend, and an image-scraper.
+A wish list app with Elasticsearch-powered search and online image lookup: a RESTful **Java 21 / Spring Boot 3** API, an Angular frontend, and an image-scraper.
 
 | | Tests | Coverage |
 |---------|-------|----------|
