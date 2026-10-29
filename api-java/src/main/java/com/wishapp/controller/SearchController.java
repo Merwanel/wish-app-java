@@ -15,8 +15,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -39,13 +39,13 @@ public class SearchController {
     }
 
     /**
-     * GET /search/{searchTerm} - Proxy SSE stream from image-scraper.
+     * GET /image-searches?q={term} - Proxy SSE stream from image-scraper.
      *
-     * @param searchTerm the search term
+     * @param searchTerm the search term ({@code q} query parameter)
      * @return SSE emitter for streaming images
      */
-    @GetMapping(value = "/search/{searchTerm}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter search(@PathVariable String searchTerm) {
+    @GetMapping(value = "/image-searches", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter search(@RequestParam("q") String searchTerm) {
         return sseEmitterManager.createEmitter(searchTerm);
     }
 

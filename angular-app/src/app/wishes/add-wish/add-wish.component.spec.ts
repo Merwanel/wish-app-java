@@ -61,7 +61,7 @@ describe('AddWishComponent', () => {
       component.onClickDoGetImages();
 
       expect(window.EventSource).toHaveBeenCalledWith(
-        `${API_DB_URL}search/test%20search`
+        `${API_DB_URL}image-searches?q=test%20search`
       );
     });
 
@@ -118,7 +118,7 @@ describe('AddWishComponent', () => {
       component.onClickDoGetImages();
 
       expect(window.EventSource).toHaveBeenCalledWith(
-        `${API_DB_URL}search/test%20with%20spaces%20%26%20symbols!`
+        `${API_DB_URL}image-searches?q=test%20with%20spaces%20%26%20symbols!`
       );
     });
   });

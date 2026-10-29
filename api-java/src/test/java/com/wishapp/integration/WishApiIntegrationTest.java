@@ -135,8 +135,9 @@ class WishApiIntegrationTest {
     private ResponseEntity<String> searchSse(String searchTerm) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.TEXT_EVENT_STREAM));
-        var uri = UriComponentsBuilder.fromHttpUrl(url("/search/{term}"))
-            .buildAndExpand(searchTerm)
+        var uri = UriComponentsBuilder.fromHttpUrl(url("/image-searches"))
+            .queryParam("q", searchTerm)
+            .build()
             .encode()
             .toUri();
         return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
@@ -414,7 +415,7 @@ class WishApiIntegrationTest {
     }
 
     /* ------------------------------------------------------------------ */
-    /* GET /search/{term} (SSE)                                           */
+    /* GET /image-searches?q= (SSE)                                       */
     /* ------------------------------------------------------------------ */
 
     @Test

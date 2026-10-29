@@ -27,7 +27,7 @@ A wish list app with Elasticsearch-powered search and online image lookup: a **J
   - once at startup,
   - after each write transaction commits.
 - **Search** queries Elasticsearch, then loads the pictures from Postgres for the returned ids.
-- **Image search**: `GET /search/{term}` proxies the SSE stream of `image-scraper` (`GET /internal/scrape/{term}`, one image per search engine, run in parallel in worker threads). Complete results are cached in Redis for 1 hour.
+- **Image search**: `GET /image-searches?q={term}` proxies the SSE stream of `image-scraper` (`GET /internal/scrape/{term}`, one image per search engine, run in parallel in worker threads). Complete results are cached in Redis for 1 hour.
 - **Redis therefore has two roles**: the ETL bookmark and the scraper-result cache.
 
 ## Tech Stack
