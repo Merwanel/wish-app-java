@@ -71,10 +71,10 @@ public class WishController {
     public ResponseEntity<WishDTO> updateWish(
             @PathVariable Long id,
             @Valid @RequestBody UpdateWishRequest request) {
-        if (request.isNamePresent() && (request.getName() == null || request.getName().isBlank())) {
+        if (request.isNamePresent() && request.getName() != null && request.getName().isBlank()) {
             return ResponseEntity.badRequest().build();
         }
-        if (request.isCommentPresent() && (request.getComment() == null || request.getComment().isBlank())) {
+        if (request.isCommentPresent() && request.getComment() != null && request.getComment().isBlank()) {
             return ResponseEntity.badRequest().build();
         }
         try {

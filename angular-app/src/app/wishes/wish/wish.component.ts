@@ -71,7 +71,7 @@ export class WishComponent implements OnInit {
       const reader = new FileReader();
       reader.onload = () => {
         const imageBuffer = new Uint8Array(reader.result as ArrayBuffer);
-        this.onChangeDoUpdateWish({id:this.wish.id, picture:imageBuffer}) ;
+        this.onChangeDoUpdateWish({ picture: imageBuffer });
       };
       reader.readAsArrayBuffer(file);
     }
