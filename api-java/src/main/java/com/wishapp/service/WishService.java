@@ -16,7 +16,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * Service layer for Wish entity operations.
  *
  * <p>Provides CRUD operations with image processing and soft-delete support.
- * After successful writes, triggers ETL sync with refresh so Angular A2 list
+ * After successful writes, triggers ETL sync with refresh so {@code GET /wishes}
  * refetches see the change immediately.</p>
  */
 @Service
@@ -79,15 +79,19 @@ public class WishService {
         Wish existing = wishRepository.findByIdAndDeletedAtIsNull(id)
             .orElseThrow(() -> new RuntimeException("Wish not found: " + id));
 
-        String processedImage = null;
-        if (request.getPicture() != null && !request.getPicture().isEmpty()) {
-            processedImage = imageProcessingService.resizeAndConvertToWebP(request.getPicture());
+        if (request.isNamePresent() && request.getName() != null) {
+            existing.setName(request.getName());
         }
-
-        existing.setName(request.getName());
-        existing.setTags(request.getTags() != null ? request.getTags() : existing.getTags());
-        existing.setComment(request.getComment());
-        if (processedImage != null) {
+        if (request.isCommentPresent() && request.getComment() != null) {
+            existing.setComment(request.getComment());
+        }
+        if (request.isTagsPresent() && request.getTags() != null) {
+            existing.setTags(request.getTags());
+        }
+        if (request.isPicturePresent()
+            && request.getPicture() != null
+            && !request.getPicture().isEmpty()) {
+            String processedImage = imageProcessingService.resizeAndConvertToWebP(request.getPicture());
             existing.setPicture(java.util.Base64.getDecoder().decode(processedImage));
         }
 

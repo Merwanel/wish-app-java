@@ -46,7 +46,7 @@ export class WishComponent implements OnInit {
   }
 
   onChangeDoUpdateWish(wishData: WishPartial) {
-    const res = this.WishService.updateWish({ id: this.wish.id, ...wishData });
+    const res = this.WishService.updateWish(this.wish.id, wishData);
     res.subscribe({
       next: (wish) => {
         this.wishUpdated.emit({wish, idx:this.idx});

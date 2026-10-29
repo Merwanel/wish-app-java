@@ -34,7 +34,9 @@ export class TagsComponent {
       this.wish.tags.pop() ;
     }
     if (payload.doUpdateWish) {
-      this.WishService.updateWish({id:this.wish.id, tags:this.wish.tags.map(({val})=>val)}) ;
+      this.WishService.updateWish(this.wish.id, {
+        tags: this.wish.tags.map(({ val }) => val),
+      });
     }
   }
 

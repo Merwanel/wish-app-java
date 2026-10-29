@@ -162,7 +162,7 @@ export class WishService {
   addWish(wishData: WishOmitId) {
     const WishDataToSend = convertUint8ArrayToBase64(wishData);
     return this.http
-      .post(`${API_DB_URL}new-wish`, JSON.stringify(WishDataToSend), { headers: this.headers })
+      .post(`${API_DB_URL}wishes`, JSON.stringify(WishDataToSend), { headers: this.headers })
       .pipe(
         switchMap((res) => {
           return from(this.fetchWishes()).pipe(map(() => res));
@@ -170,10 +170,10 @@ export class WishService {
       );
   }
 
-  updateWish(wishData: WishPartial) {
+  updateWish(id: number, wishData: Omit<WishPartial, 'id'>) {
     const WishDataToSend = convertUint8ArrayToBase64Partial(wishData);
     const req = this.http
-      .patch(`${API_DB_URL}update-wish`, JSON.stringify(WishDataToSend), { headers: this.headers })
+      .patch(`${API_DB_URL}wishes/${id}`, JSON.stringify(WishDataToSend), { headers: this.headers })
       .pipe(map((res) => WishDTO.parse(res)))
       .pipe(map((res) => convertBase64ToUint8ArrayAndAddUUIDToTagsAndAddLetters(res)))
       .pipe<WishWRate>(

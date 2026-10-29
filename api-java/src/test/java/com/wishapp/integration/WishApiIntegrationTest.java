@@ -126,9 +126,9 @@ class WishApiIntegrationTest {
             body.put("tags", List.of("tag-for-" + i, "tag1", "tag2", "tag3", "tag4"));
             body.put("picture", RED_DOT_IMAGE_BASE64);
             ResponseEntity<String> res = restTemplate.exchange(
-                url("/new-wish"), HttpMethod.POST,
+                url("/wishes"), HttpMethod.POST,
                 new HttpEntity<>(body, jsonHeaders()), String.class);
-            assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+            assertThat(res.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         }
     }
 
@@ -182,11 +182,11 @@ class WishApiIntegrationTest {
     }
 
     /* ------------------------------------------------------------------ */
-    /* POST /new-wish                                                     */
+    /* POST /wishes                                                       */
     /* ------------------------------------------------------------------ */
 
     @Test
-    void newWish_shouldCreateWishInDatabaseAndReturn204() {
+    void createWish_shouldPersistAndReturn201WithLocationAndBody() {
         long before = wishRepository.count();
 
         Map<String, Object> body = new TreeMap<>();
@@ -196,14 +196,26 @@ class WishApiIntegrationTest {
         body.put("picture", RED_DOT_IMAGE_BASE64);
         body.put("createdAt", "2026-09-29T08:00:00.000Z");
 
-        ResponseEntity<String> res = restTemplate.exchange(
-            url("/new-wish"), HttpMethod.POST,
-            new HttpEntity<>(body, jsonHeaders()), String.class);
+        ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
+            url("/wishes"), HttpMethod.POST,
+            new HttpEntity<>(body, jsonHeaders()),
+            new ParameterizedTypeReference<Map<String, Object>>() {});
 
-        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(wishRepository.count()).isEqualTo(before + 1);
         // persisted picture was converted/resized to WebP -> different bytes from input
         assertThat(wishRepository.findAll().get(0).getPicture()).isNotEmpty();
+
+        Map<String, Object> created = res.getBody();
+        assertThat(created).isNotNull();
+        Number id = (Number) created.get("id");
+        assertThat(id).isNotNull();
+        assertThat(res.getHeaders().getLocation()).hasToString("/wishes/" + id.longValue());
+        assertThat(created.get("name")).isEqualTo("new-wish-test");
+        assertThat(created.get("comment")).isEqualTo("new wish comment");
+        assertThat((List<String>) created.get("tags")).containsExactly("new wish tag");
+        assertThat((String) created.get("picture")).matches("^[A-Za-z0-9+/=]*$");
+        assertThat((String) created.get("createdAt")).contains("T");
     }
 
     @Test
@@ -215,7 +227,7 @@ class WishApiIntegrationTest {
         body.put("picture", RED_DOT_IMAGE_BASE64);
 
         ResponseEntity<String> res = restTemplate.exchange(
-            url("/new-wish"), HttpMethod.POST,
+            url("/wishes"), HttpMethod.POST,
             new HttpEntity<>(body, jsonHeaders()), String.class);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -231,15 +243,15 @@ class WishApiIntegrationTest {
         body.put("picture", RED_DOT_IMAGE_BASE64);
 
         ResponseEntity<String> res = restTemplate.exchange(
-            url("/new-wish"), HttpMethod.POST,
+            url("/wishes"), HttpMethod.POST,
             new HttpEntity<>(body, jsonHeaders()), String.class);
 
-        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(wishRepository.findAll().get(0).getTags()).isEmpty();
     }
 
     /* ------------------------------------------------------------------ */
-    /* PATCH /update-wish                                                 */
+    /* PATCH /wishes/{id}                                                 */
     /* ------------------------------------------------------------------ */
 
     @Test
@@ -248,15 +260,10 @@ class WishApiIntegrationTest {
         Long id = wishRepository.findAll().get(0).getId();
         String modifiedComment = "modified comment";
 
-        Map<String, Object> body = new TreeMap<>();
-        body.put("id", id);
-        body.put("name", "name for 0");
-        body.put("comment", modifiedComment);
-        body.put("tags", List.of("tag-for-0", "added tag"));
-        body.put("picture", RED_DOT_IMAGE_BASE64);
+        Map<String, Object> body = Map.of("comment", modifiedComment);
 
         ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
-            url("/update-wish"), HttpMethod.PATCH,
+            url("/wishes/" + id), HttpMethod.PATCH,
             new HttpEntity<>(body, jsonHeaders()),
             new ParameterizedTypeReference<Map<String, Object>>() {});
 
@@ -273,15 +280,10 @@ class WishApiIntegrationTest {
         Long id = existing.getId();
         byte[] originalPicture = existing.getPicture().clone();
 
-        Map<String, Object> body = new TreeMap<>();
-        body.put("id", id);
-        body.put("name", "name for 0");
-        body.put("comment", "comment without new picture");
-        body.put("tags", List.of("tag-for-0"));
-        // picture intentionally omitted
+        Map<String, Object> body = Map.of("comment", "comment without new picture");
 
         ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
-            url("/update-wish"), HttpMethod.PATCH,
+            url("/wishes/" + id), HttpMethod.PATCH,
             new HttpEntity<>(body, jsonHeaders()),
             new ParameterizedTypeReference<Map<String, Object>>() {});
 
@@ -298,14 +300,10 @@ class WishApiIntegrationTest {
         String[] originalTags = existing.getTags().clone();
 
         Map<String, Object> body = new HashMap<>();
-        body.put("id", id);
-        body.put("name", "name for 0");
-        body.put("comment", "comment with null tags");
         body.put("tags", null);
-        body.put("picture", RED_DOT_IMAGE_BASE64);
 
         ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
-            url("/update-wish"), HttpMethod.PATCH,
+            url("/wishes/" + id), HttpMethod.PATCH,
             new HttpEntity<>(body, jsonHeaders()),
             new ParameterizedTypeReference<Map<String, Object>>() {});
 
@@ -315,30 +313,25 @@ class WishApiIntegrationTest {
     }
 
     @Test
-    void updateWish_withoutId_shouldReturn400() {
-        Map<String, Object> body = new TreeMap<>();
-        body.put("name", "x");
-        body.put("comment", "y");
-        body.put("tags", List.of("t"));
-        body.put("picture", RED_DOT_IMAGE_BASE64);
+    void updateWish_withBlankName_shouldReturn400() {
+        seedWishes(1);
+        Long id = wishRepository.findAll().get(0).getId();
+
+        Map<String, Object> body = Map.of("name", "");
 
         ResponseEntity<String> res = restTemplate.exchange(
-            url("/update-wish"), HttpMethod.PATCH,
+            url("/wishes/" + id), HttpMethod.PATCH,
             new HttpEntity<>(body, jsonHeaders()), String.class);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
-    void updateWish_withMissingId_shouldReturn404() {
-        Map<String, Object> body = new TreeMap<>();
-        body.put("id", 999999L);
-        body.put("name", "x");
-        body.put("comment", "y");
-        body.put("picture", RED_DOT_IMAGE_BASE64);
+    void updateWish_withMissingWish_shouldReturn404() {
+        Map<String, Object> body = Map.of("name", "x");
 
         ResponseEntity<String> res = restTemplate.exchange(
-            url("/update-wish"), HttpMethod.PATCH,
+            url("/wishes/999999"), HttpMethod.PATCH,
             new HttpEntity<>(body, jsonHeaders()), String.class);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);

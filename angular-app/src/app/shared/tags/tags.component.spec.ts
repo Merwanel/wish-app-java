@@ -192,9 +192,8 @@ describe('TagsComponent', () => {
       
       component.onChangeDoUpdateWishTags(payload);
       
-      expect(mockWishService.updateWish).toHaveBeenCalledWith({
-        id: component.wish.id,
-        tags: ['updated']
+      expect(mockWishService.updateWish).toHaveBeenCalledWith(component.wish.id, {
+        tags: ['updated'],
       });
     });
 

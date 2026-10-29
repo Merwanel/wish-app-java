@@ -3,7 +3,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { WishService } from '../wish.service';
 import { TagsService } from '../tags.service';
-import { WishPartial } from '../../schemas/wish.schema';
 import { API_DB_URL } from '../../const';
 import { uint8ArrayToBase64 } from 'uint8array-extras';
 
@@ -93,7 +92,7 @@ describe('Wish-Tag Integration Tests', () => {
         },
       });
 
-      const createReq = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const createReq = httpMock.expectOne(`${API_DB_URL}wishes`);
       expect(createReq.request.method).toBe('POST');
       createReq.flush({ success: true });
 
@@ -172,14 +171,9 @@ describe('Wish-Tag Integration Tests', () => {
       expect(tagsService.getTags.has('stable')).toBe(true);
       expect(tagsService.getTags.has('new')).toBe(false);
 
-      const wishUpdate: WishPartial = {
-        id: 1,
-        tags: ['new', 'common', 'updated']
-      };
+      wishService.updateWish(1, { tags: ['new', 'common', 'updated'] });
 
-      wishService.updateWish(wishUpdate);
-
-      const updateReq = httpMock.expectOne(`${API_DB_URL}update-wish`);
+      const updateReq = httpMock.expectOne(`${API_DB_URL}wishes/1`);
       expect(updateReq.request.method).toBe('PATCH');
       const requestBody = JSON.parse(updateReq.request.body);
       expect(requestBody.tags).toEqual(['new', 'common', 'updated']);
@@ -215,14 +209,9 @@ describe('Wish-Tag Integration Tests', () => {
       expectAndFlushSearch(initialWishes);
       await fetchPromise;
 
-      const wishUpdate: WishPartial = {
-        id: 1,
-        tags: []
-      };
+      wishService.updateWish(1, { tags: [] });
 
-      wishService.updateWish(wishUpdate);
-
-      const updateReq = httpMock.expectOne(`${API_DB_URL}update-wish`);
+      const updateReq = httpMock.expectOne(`${API_DB_URL}wishes/1`);
       updateReq.flush(createMockApiWish({ id: 1, tags: [] }));
 
       const updatedWishes = [

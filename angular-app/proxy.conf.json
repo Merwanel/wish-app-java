@@ -7,14 +7,6 @@
     "target": "http://localhost:3000",
     "secure": false
   },
-  "/new-wish": {
-    "target": "http://localhost:3000",
-    "secure": false
-  },
-  "/update-wish": {
-    "target": "http://localhost:3000",
-    "secure": false
-  },
   "/convert-image": {
     "target": "http://localhost:3000",
     "secure": false

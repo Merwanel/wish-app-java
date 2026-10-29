@@ -6,6 +6,7 @@ import com.wishapp.domain.UpdateWishRequest;
 import com.wishapp.service.WishService;
 import jakarta.validation.Valid;
 import java.lang.management.ManagementFactory;
+import java.net.URI;
 import java.time.Instant;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,30 +49,36 @@ public class WishController {
     }
 
     /**
-     * POST /new-wish - Create a new wish.
+     * POST /wishes - Create a new wish.
      *
      * @param request the create request
-     * @return 204 No Content
+     * @return 201 Created with {@code Location: /wishes/{id}} and the created wish
      */
-    @PostMapping("/new-wish")
-    public ResponseEntity<Void> createWish(@Valid @RequestBody CreateWishRequest request) {
-        wishService.create(request);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/wishes")
+    public ResponseEntity<WishDTO> createWish(@Valid @RequestBody CreateWishRequest request) {
+        WishDTO created = wishService.create(request);
+        return ResponseEntity.created(URI.create("/wishes/" + created.id())).body(created);
     }
 
     /**
-     * PATCH /update-wish - Update an existing wish.
+     * PATCH /wishes/{id} - Partially update an existing wish.
      *
-     * @param request the update request with id
+     * @param id the wish id from the URL
+     * @param request fields to change (omitted keys stay as-is)
      * @return updated wish DTO if found, 404 if not found
      */
-    @PatchMapping("/update-wish")
-    public ResponseEntity<WishDTO> updateWish(@Valid @RequestBody UpdateWishRequest request) {
-        if (request.getId() == null) {
+    @PatchMapping("/wishes/{id}")
+    public ResponseEntity<WishDTO> updateWish(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateWishRequest request) {
+        if (request.isNamePresent() && (request.getName() == null || request.getName().isBlank())) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (request.isCommentPresent() && (request.getComment() == null || request.getComment().isBlank())) {
             return ResponseEntity.badRequest().build();
         }
         try {
-            return ResponseEntity.ok(wishService.update(request.getId(), request));
+            return ResponseEntity.ok(wishService.update(id, request));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

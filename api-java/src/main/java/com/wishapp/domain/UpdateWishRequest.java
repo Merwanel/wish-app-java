@@ -1,23 +1,25 @@
 package com.wishapp.domain;
 
-import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 
 /**
- * Request DTO for updating an existing wish.
- * Uses Lombok Data instead of record to allow id field.
+ * Partial update body for {@code PATCH /wishes/{id}}.
+ *
+ * <p>Only keys present in the JSON are applied; {@code null} does not clear {@code tags}.</p>
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonDeserialize(using = UpdateWishRequestDeserializer.class)
 public class UpdateWishRequest {
-    private Long id;
+    private boolean namePresent;
+    private boolean commentPresent;
+    private boolean tagsPresent;
+    private boolean picturePresent;
 
-    @NotBlank
     private String name;
-
     private String[] tags;
-
-    @NotBlank
     private String comment;
-
     private String picture;
 }

@@ -136,7 +136,7 @@ describe('AddWishComponent Integration Tests', () => {
 
       submitNewWish();
 
-      const req = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const req = httpMock.expectOne(`${API_DB_URL}wishes`);
       expect(req.request.method).toBe('POST');
       expect(req.request.headers.get('Content-Type')).toBe('application/json');
 
@@ -180,7 +180,7 @@ describe('AddWishComponent Integration Tests', () => {
       fixture.detectChanges();
       submitNewWish()
 
-      const req = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const req = httpMock.expectOne(`${API_DB_URL}wishes`);
       const requestBody = JSON.parse(req.request.body);
       expect(requestBody.tags).toEqual(['existing', 'newtag']);
 
@@ -210,7 +210,7 @@ describe('AddWishComponent Integration Tests', () => {
       fixture.detectChanges();
       submitNewWish();
 
-      const req = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const req = httpMock.expectOne(`${API_DB_URL}wishes`);
       const requestBody = JSON.parse(req.request.body);
       expect(requestBody.tags).toEqual(['action', 'multiplayer']);
 
@@ -256,7 +256,7 @@ describe('AddWishComponent Integration Tests', () => {
       fixture.detectChanges();
       submitNewWish();
 
-      const req = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const req = httpMock.expectOne(`${API_DB_URL}wishes`);
       const requestBody = JSON.parse(req.request.body);
       expect(requestBody.picture).toBe(uint8ArrayToBase64(component.imageBuffer));
       expect(requestBody.picture).not.toBe('');
@@ -274,7 +274,7 @@ describe('AddWishComponent Integration Tests', () => {
       fixture.detectChanges();
       submitNewWish();
 
-      const req = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const req = httpMock.expectOne(`${API_DB_URL}wishes`);
       const requestBody = JSON.parse(req.request.body);
       expect(requestBody.picture).toBe('');
 
@@ -295,7 +295,7 @@ describe('AddWishComponent Integration Tests', () => {
       const alertDiv = fixture.debugElement.nativeElement.querySelector('.alert');
       expect(alertDiv.textContent.trim()).toContain('Name must be at least 3 characters long.');
 
-      httpMock.expectNone(`${API_DB_URL}new-wish`);
+      httpMock.expectNone(`${API_DB_URL}wishes`);
     });
 
     it('should handle HTTP error responses and verify error propagation', fakeAsync(() => {
@@ -304,7 +304,7 @@ describe('AddWishComponent Integration Tests', () => {
 
       submitNewWish();
 
-      const req = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const req = httpMock.expectOne(`${API_DB_URL}wishes`);
 
       expect(() => {
         req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
@@ -329,7 +329,7 @@ describe('AddWishComponent Integration Tests', () => {
       fixture.detectChanges();
       submitNewWish();
 
-      const createReq = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const createReq = httpMock.expectOne(`${API_DB_URL}wishes`);
       createReq.flush({ success: true });
 
       const fetchReq = expectSearchRequest();
@@ -368,7 +368,7 @@ describe('AddWishComponent Integration Tests', () => {
       expect(component.wish.comment.val).toBe(originalWishData.comment);
       expect(component.wish.tags).toEqual(originalWishData.tags);
 
-      const req = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const req = httpMock.expectOne(`${API_DB_URL}wishes`);
       req.flush({ success: true });
 
       expectSearchRequest().flush(toSearchResponse([]));

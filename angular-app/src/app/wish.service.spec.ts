@@ -120,7 +120,7 @@ describe('WishService', () => {
         },
       });
 
-      const addReq = httpMock.expectOne(`${API_DB_URL}new-wish`);
+      const addReq = httpMock.expectOne(`${API_DB_URL}wishes`);
       expect(addReq.request.method).toBe('POST');
       addReq.flush({ success: true });
 

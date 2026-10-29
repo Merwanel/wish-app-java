@@ -142,9 +142,8 @@ describe('WishComponent', () => {
 
       component.onChangeDoUpdateWish({ name: updated_wish.name.val });
 
-      expect(wishService.updateWish).toHaveBeenCalledWith({
-        id: component.wish.id,
-        name: updated_wish.name.val
+      expect(wishService.updateWish).toHaveBeenCalledWith(component.wish.id, {
+        name: updated_wish.name.val,
       });
     });
 
@@ -155,9 +154,8 @@ describe('WishComponent', () => {
 
       component.onChangeDoUpdateWish({ comment: updated_wish.name.val });
 
-      expect(wishService.updateWish).toHaveBeenCalledWith({
-        id: component.wish.id,
-        comment: updated_wish.name.val
+      expect(wishService.updateWish).toHaveBeenCalledWith(component.wish.id, {
+        comment: updated_wish.name.val,
       });
     });
 

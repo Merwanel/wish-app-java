@@ -243,7 +243,7 @@ describe('WishesComponent - Service Integration', () => {
       },
     });
     
-    const newWishReq = expectHttpRequest(`${API_DB_URL}new-wish`, 'POST');
+    const newWishReq = expectHttpRequest(`${API_DB_URL}wishes`, 'POST');
     
     const expectedRequestBody = {
       name: newWishData.name,
