@@ -1,5 +1,7 @@
 services:
   api-java:
+    image: ghcr.io/merwanel/wish-app-java-api-java:latest
+    pull_policy: missing
     build:
       context: ./api-java
       dockerfile: Dockerfile
@@ -35,6 +37,8 @@ services:
       start_period: 30s
   
   image-scraper:
+    image: ghcr.io/merwanel/wish-app-java-image-scraper:latest
+    pull_policy: missing
     build:
       context: .
       dockerfile: services/image-scraper/Dockerfile
@@ -109,7 +113,9 @@ services:
 
 
   angular-app:
-    build: 
+    image: ghcr.io/merwanel/wish-app-java-angular-app:latest
+    pull_policy: missing
+    build:
       context: .
       dockerfile: angular-app/Dockerfile
     container_name: angular-app
