@@ -200,7 +200,7 @@ export class WishService {
   convertImage(image: Uint8Array): Observable<Uint8Array> {
     const image_base64 = uint8ArrayToBase64(image);
     return this.http
-      .post(`${API_DB_URL}convert-image`, JSON.stringify({ image_base64 }), {
+      .post(`${API_DB_URL}images`, JSON.stringify({ image_base64 }), {
         headers: this.headers,
       })
       .pipe(map((res) => z.string().parse(res)))

@@ -99,15 +99,14 @@ public class WishController {
     }
 
     /**
-     * POST /convert-image - Convert and resize an image.
+     * POST /images - Convert and resize an uploaded image.
      *
-     * <p>Matches the Express endpoint which responds with {@code res.json(base64String)},
-     * i.e. a bare JSON string carrying the base64-encoded WebP image.</p>
+     * <p>Accepts {@code image_base64} and responds with a bare JSON string of base64 WebP.</p>
      *
      * @param request the convert request with image_base64
      * @return converted image as a base64 WebP JSON string
      */
-    @PostMapping("/convert-image")
+    @PostMapping("/images")
     public ResponseEntity<String> convertImage(@Valid @RequestBody ConvertImageRequest request) {
         String converted = wishService.convertImage(request.image_base64());
         return ResponseEntity.ok(converted);

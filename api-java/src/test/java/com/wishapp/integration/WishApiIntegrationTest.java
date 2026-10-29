@@ -371,7 +371,7 @@ class WishApiIntegrationTest {
     }
 
     /* ------------------------------------------------------------------ */
-    /* POST /convert-image                                                */
+    /* POST /images                                                       */
     /* ------------------------------------------------------------------ */
 
     @Test
@@ -380,7 +380,7 @@ class WishApiIntegrationTest {
         body.put("image_base64", RED_DOT_IMAGE_BASE64);
 
         ResponseEntity<byte[]> res = restTemplate.exchange(
-            url("/convert-image"), HttpMethod.POST,
+            url("/images"), HttpMethod.POST,
             new HttpEntity<>(body, jsonHeaders()), byte[].class);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -404,7 +404,7 @@ class WishApiIntegrationTest {
         body.put("image_base64", "");
 
         ResponseEntity<String> res = restTemplate.exchange(
-            url("/convert-image"), HttpMethod.POST,
+            url("/images"), HttpMethod.POST,
             new HttpEntity<>(body, jsonHeaders()), String.class);
 
         // Current contract: null conversion result is serialized as an empty/null JSON body
