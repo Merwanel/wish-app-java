@@ -338,7 +338,7 @@ class WishApiIntegrationTest {
     }
 
     /* ------------------------------------------------------------------ */
-    /* DELETE /delete-wish/{id}                                           */
+    /* DELETE /wishes/{id}                                                */
     /* ------------------------------------------------------------------ */
 
     @Test
@@ -348,7 +348,7 @@ class WishApiIntegrationTest {
         Long id = wishRepository.findAll().get(0).getId();
 
         ResponseEntity<String> res = restTemplate.exchange(
-            url("/delete-wish/" + id), HttpMethod.DELETE, null, String.class);
+            url("/wishes/" + id), HttpMethod.DELETE, null, String.class);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         // row still exists (soft delete) but is flagged deleted
@@ -359,14 +359,14 @@ class WishApiIntegrationTest {
     @Test
     void deleteWish_withNonNumericId_shouldReturn400() {
         ResponseEntity<String> res = restTemplate.exchange(
-            url("/delete-wish/not-a-number"), HttpMethod.DELETE, null, String.class);
+            url("/wishes/not-a-number"), HttpMethod.DELETE, null, String.class);
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
     void deleteWish_withUnknownId_shouldReturn404() {
         ResponseEntity<String> res = restTemplate.exchange(
-            url("/delete-wish/999999"), HttpMethod.DELETE, null, String.class);
+            url("/wishes/999999"), HttpMethod.DELETE, null, String.class);
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 

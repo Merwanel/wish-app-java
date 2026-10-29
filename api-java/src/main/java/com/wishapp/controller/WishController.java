@@ -85,12 +85,12 @@ public class WishController {
     }
 
     /**
-     * DELETE /delete-wish/{id} - Soft delete a wish.
+     * DELETE /wishes/{id} - Soft delete a wish.
      *
      * @param id the wish ID
-     * @return 204 No Content if deleted, 400 if invalid ID
+     * @return 204 No Content if deleted, 404 if not found
      */
-    @DeleteMapping("/delete-wish/{id}")
+    @DeleteMapping("/wishes/{id}")
     public ResponseEntity<Void> deleteWish(@PathVariable Long id) {
         if (!wishService.delete(id)) {
             return ResponseEntity.notFound().build();

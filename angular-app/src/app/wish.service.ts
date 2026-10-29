@@ -192,7 +192,7 @@ export class WishService {
 
   deleteWish(id: number) {
     // fire the DELETE, then reload the stored list from the first page
-    this.http.delete(`${API_DB_URL}delete-wish/${id}`).subscribe(() => {
+    this.http.delete(`${API_DB_URL}wishes/${id}`).subscribe(() => {
       this.fetchWishes();
     });
   }

@@ -285,9 +285,9 @@ describe('WishesComponent - Service Integration', () => {
     
     wishService.deleteWish(wishIdToDelete);
     
-    const deleteReq = expectHttpRequest(`${API_DB_URL}delete-wish/${wishIdToDelete}`, 'DELETE');
+    const deleteReq = expectHttpRequest(`${API_DB_URL}wishes/${wishIdToDelete}`, 'DELETE');
     
-    expect(deleteReq.request.url).toBe(`${API_DB_URL}delete-wish/${wishIdToDelete}`);
+    expect(deleteReq.request.url).toBe(`${API_DB_URL}wishes/${wishIdToDelete}`);
     
     const deleteResponse = { success: true, message: 'Wish deleted successfully' };
     flushHttpResponse(deleteReq, deleteResponse);
