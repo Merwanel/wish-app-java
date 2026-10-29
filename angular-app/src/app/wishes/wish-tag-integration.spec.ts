@@ -35,7 +35,7 @@ describe('Wish-Tag Integration Tests', () => {
   };
 
   const expectAndFlushSearch = (wishes: ReturnType<typeof createMockApiWish>[] = []) => {
-    const req = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes/search`);
+    const req = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes`);
     expect(req.request.method).toBe('GET');
     req.flush(toSearchResponse(wishes));
     return req;

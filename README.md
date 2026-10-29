@@ -13,7 +13,7 @@ A wish list app with Elasticsearch-powered search and online image lookup: a **J
 ## Features
 
 - **Wish Management**: Create, update, and delete wishes with names, comments, tags, and images
-- **Elasticsearch Search**: Fuzzy search, tag facets, and `<mark>` highlights via `GET /wishes/search`
+- **Elasticsearch Search**: Fuzzy search, tag facets, and `<mark>` highlights via `GET /wishes`
 - **Browsing UI**: Tag facet filters, pagination , two display modes, and several themes persisted in `localStorage`
 - **Image Processing**: Uploads are cropped to 200×300 and converted to WebP
 - **Online Image Search**: Playwright scraping of web-engines streamed to the UI over SSE through api-java

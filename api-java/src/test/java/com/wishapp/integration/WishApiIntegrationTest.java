@@ -182,33 +182,6 @@ class WishApiIntegrationTest {
     }
 
     /* ------------------------------------------------------------------ */
-    /* GET /all-wishes                                                    */
-    /* ------------------------------------------------------------------ */
-
-    @Test
-    void allWishes_shouldReturnRightNumberOfElementsRespectingSchema() {
-        seedWishes(NB_WISHES_IN);
-
-        ResponseEntity<List<Map<String, Object>>> res = restTemplate.exchange(
-            url("/all-wishes"), HttpMethod.GET, null,
-            new ParameterizedTypeReference<List<Map<String, Object>>>() {});
-
-        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> wishes = res.getBody();
-        assertThat(wishes).hasSize(NB_WISHES_IN);
-
-        for (Map<String, Object> wish : wishes) {
-            assertThat(wish.get("id")).isInstanceOf(Number.class);
-            assertThat((String) wish.get("name")).matches(".+");
-            assertThat((String) wish.get("comment")).isNotNull();
-            assertThat((List<?>) wish.get("tags")).isNotNull();
-            // schema field used by the original WishDTO
-            assertThat((String) wish.get("picture")).matches("^[A-Za-z0-9+/=]*$");
-            assertThat((String) wish.get("createdAt")).contains("T");
-        }
-    }
-
-    /* ------------------------------------------------------------------ */
     /* POST /new-wish                                                     */
     /* ------------------------------------------------------------------ */
 

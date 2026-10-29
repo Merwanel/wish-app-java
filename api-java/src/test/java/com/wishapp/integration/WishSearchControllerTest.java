@@ -26,7 +26,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * {@code GET /wishes/search} against Testcontainers (Postgres, Redis, Elasticsearch).
+ * {@code GET /wishes} against Testcontainers (Postgres, Redis, Elasticsearch).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = ApiJavaApplication.class)
@@ -77,7 +77,7 @@ class WishSearchControllerTest {
             "Best game ever", new byte[] {10, 20, 30});
 
         ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
-            url("/wishes/search?q=zeldq"),
+            url("/wishes?q=zeldq"),
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<>() {});
@@ -100,7 +100,7 @@ class WishSearchControllerTest {
         saveAndSync("Beta", new String[] {"gaming", "rpg"}, "b", new byte[] {2});
 
         ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
-            url("/wishes/search"),
+            url("/wishes"),
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<>() {});
@@ -122,7 +122,7 @@ class WishSearchControllerTest {
         saveAndSync("Cookbook", new String[] {"cooking"}, "food", new byte[] {2});
 
         ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
-            url("/wishes/search?tag=gaming"),
+            url("/wishes?tag=gaming"),
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<>() {});
@@ -138,11 +138,11 @@ class WishSearchControllerTest {
         saveAndSync("Zelda", new String[] {"gaming"}, "game", new byte[] {1});
         saveAndSync("Cookbook", new String[] {"cooking"}, "food", new byte[] {2});
 
-        var emptyTagUri = UriComponentsBuilder.fromHttpUrl(url("/wishes/search"))
+        var emptyTagUri = UriComponentsBuilder.fromHttpUrl(url("/wishes"))
             .queryParam("tag", "")
             .build()
             .toUri();
-        var whitespaceTagUri = UriComponentsBuilder.fromHttpUrl(url("/wishes/search"))
+        var whitespaceTagUri = UriComponentsBuilder.fromHttpUrl(url("/wishes"))
             .queryParam("tag", " ")
             .build()
             .encode()
@@ -177,7 +177,7 @@ class WishSearchControllerTest {
         saveAndSync("Zelda", new String[] {"gaming"}, "game", new byte[] {1});
 
         ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
-            url("/wishes/search?q=zzzznonexistent999xyz"),
+            url("/wishes?q=zzzznonexistent999xyz"),
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<>() {});
@@ -196,17 +196,17 @@ class WishSearchControllerTest {
         saveAndSync("Gamma", new String[] {"t"}, "c", new byte[] {3});
 
         ResponseEntity<Map<String, Object>> page0 = restTemplate.exchange(
-            url("/wishes/search?limit=0&offset=-1"),
+            url("/wishes?limit=0&offset=-1"),
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<>() {});
         ResponseEntity<Map<String, Object>> expectedFirst = restTemplate.exchange(
-            url("/wishes/search?limit=1&offset=0"),
+            url("/wishes?limit=1&offset=0"),
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<>() {});
         ResponseEntity<Map<String, Object>> page1 = restTemplate.exchange(
-            url("/wishes/search?limit=1&offset=1"),
+            url("/wishes?limit=1&offset=1"),
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<>() {});
@@ -235,7 +235,7 @@ class WishSearchControllerTest {
         saveAndSync("Zelda cookbook", new String[] {"cooking"}, "food", new byte[] {2});
 
         ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
-            url("/wishes/search?q=zelda&tag=cooking"),
+            url("/wishes?q=zelda&tag=cooking"),
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<>() {});
@@ -255,7 +255,7 @@ class WishSearchControllerTest {
         // Intentionally do not ETL again: ES still has the document
 
         ResponseEntity<Map<String, Object>> res = restTemplate.exchange(
-            url("/wishes/search?q=Ghost"),
+            url("/wishes?q=Ghost"),
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<>() {});

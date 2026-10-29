@@ -73,7 +73,7 @@ describe('WishesComponent - Service Integration', () => {
   };
 
   const expectAndFlushFetchWishes = (mockWishes: MockApiWish[] = []): void => {
-    const req = httpMock.expectOne(r => r.url === `${API_DB_URL}wishes/search`);
+    const req = httpMock.expectOne(r => r.url === `${API_DB_URL}wishes`);
     expect(req.request.method).toBe('GET');
     flushHttpResponse(req, toSearchResponse(mockWishes));
   };
@@ -169,7 +169,7 @@ describe('WishesComponent - Service Integration', () => {
     component.ngOnInit();
     fixture.detectChanges();
     
-    const initialRequests = httpMock.match(r => r.url === `${API_DB_URL}wishes/search`);
+    const initialRequests = httpMock.match(r => r.url === `${API_DB_URL}wishes`);
     initialRequests.forEach(req => {
       expect(req.request.method).toBe('GET');
       req.flush(toSearchResponse([]));

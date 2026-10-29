@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Response for {@code GET /wishes/search}.
+ * Response for {@code GET /wishes}.
  */
 public record WishSearchResponse(
     long total,

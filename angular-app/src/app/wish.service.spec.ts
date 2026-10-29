@@ -38,7 +38,7 @@ describe('WishService', () => {
   });
 
   describe('searchWishes / fetchWishes', () => {
-    it('should fetch via /wishes/search and update service state', async () => {
+    it('should fetch via /wishes and update service state', async () => {
       const mockWishes: WishToSend[] = [
         {
           id: 1,
@@ -52,7 +52,7 @@ describe('WishService', () => {
 
       const fetchPromise = service.fetchWishes();
 
-      const req = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes/search`);
+      const req = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes`);
       expect(req.request.method).toBe('GET');
       req.flush(searchResponse(mockWishes));
 
@@ -66,7 +66,7 @@ describe('WishService', () => {
     it('should search with q and populate highlights', async () => {
       const promise = service.searchWishes({ q: 'zelda' });
       const req = httpMock.expectOne(
-        (r) => r.url === `${API_DB_URL}wishes/search` && r.params.get('q') === 'zelda'
+        (r) => r.url === `${API_DB_URL}wishes` && r.params.get('q') === 'zelda'
       );
       req.flush({
         total: 1,
@@ -124,7 +124,7 @@ describe('WishService', () => {
       expect(addReq.request.method).toBe('POST');
       addReq.flush({ success: true });
 
-      const fetchReq = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes/search`);
+      const fetchReq = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes`);
       expect(fetchReq.request.method).toBe('GET');
       fetchReq.flush(searchResponse(mockResponse));
     });

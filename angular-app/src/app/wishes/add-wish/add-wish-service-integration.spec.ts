@@ -76,7 +76,7 @@ describe('AddWishComponent Integration Tests', () => {
   };
 
   const expectSearchRequest = () => {
-    const req = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes/search`);
+    const req = httpMock.expectOne((r) => r.url === `${API_DB_URL}wishes`);
     expect(req.request.method).toBe('GET');
     return req;
   };

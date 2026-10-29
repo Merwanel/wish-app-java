@@ -26,11 +26,11 @@ public class WishSearchController {
     }
 
     /**
-     * GET /wishes/search — fuzzy search / browse with tag facets.
+     * GET /wishes — fuzzy search / browse with tag facets.
      *
      * <p>Empty or missing {@code q} uses {@code match_all} sorted by {@code createdAt} desc.</p>
      */
-    @GetMapping("/wishes/search")
+    @GetMapping("/wishes")
     public ResponseEntity<WishSearchResponse> search(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String tag,

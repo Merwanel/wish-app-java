@@ -96,7 +96,7 @@ describe('WishesComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should search wishes on init via /wishes/search path', () => {
+  it('should search wishes on init via GET /wishes', () => {
     expect(wishService.searchWishes).toHaveBeenCalled();
   });
 

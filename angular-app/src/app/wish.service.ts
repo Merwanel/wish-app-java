@@ -81,7 +81,7 @@ export class WishService {
   }
 
   /**
-   * Browse / search via GET /wishes/search (A2). Empty q = browse (match_all).
+   * Browse / search via GET /wishes. Empty q = browse (match_all).
    */
   searchWishes(options: {
     q?: string;
@@ -110,7 +110,7 @@ export class WishService {
 
     return new Promise<void>((resolve, reject) => {
       this.http
-        .get(`${API_DB_URL}wishes/search`, { params })
+        .get(`${API_DB_URL}wishes`, { params })
         .pipe(map((body) => WishSearchResponseSchema.parse(body)))
         .subscribe({
           next: (response) => {

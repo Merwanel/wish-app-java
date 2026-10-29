@@ -7,7 +7,6 @@ import com.wishapp.service.WishService;
 import jakarta.validation.Valid;
 import java.lang.management.ManagementFactory;
 import java.time.Instant;
-import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for Wish entity operations.
+ * Wish CRUD, image conversion, and health/status on the Java API.
  *
- * <p>Provides endpoints matching the legacy Express.js API contract.</p>
+ * <p>Browse and search live on {@link WishSearchController} ({@code GET /wishes}).</p>
  */
 @RestController
 @RequestMapping("")
@@ -46,18 +45,6 @@ public class WishController {
             Instant.now().toString(),
             ManagementFactory.getRuntimeMXBean().getUptime() / 1000.0
         ));
-    }
-
-    /**
-     * GET /all-wishes - Returns all non-deleted wishes.
-     *
-     * <p>Legacy/debug endpoint. The Angular UI uses {@code GET /wishes/search} instead.</p>
-     *
-     * @return list of all wishes as DTOs
-     */
-    @GetMapping("/all-wishes")
-    public ResponseEntity<List<WishDTO>> getAllWishes() {
-        return ResponseEntity.ok(wishService.findAll());
     }
 
     /**
